@@ -19,10 +19,10 @@ updates:
       interval: "monthly"
     commit-message:
       prefix: "build"
-    target-branch: "pip"
+    target-branch: "dependabotchanges"
     open-pull-requests-limit: 10
 
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: "pip"
     directory: "/src/frontend"
     schedule:
       interval: "monthly"
