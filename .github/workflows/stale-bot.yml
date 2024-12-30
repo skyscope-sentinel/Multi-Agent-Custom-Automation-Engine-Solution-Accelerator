@@ -15,5 +15,5 @@ jobs:
       - uses: actions/stale@v9
         with:
           stale-issue-message: 'This issue is stale because it has been open 180 days with no activity. Remove stale label or comment or this will be closed in 30 days.'
-          days-before-stale: 0.25 # 6 hours
-          days-before-close: 0.5  # 12 hours
+          days-before-stale: 1 # 6 hours
+          days-before-close: 1  # 12 hours
