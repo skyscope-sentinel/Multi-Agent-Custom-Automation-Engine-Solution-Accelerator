@@ -145,26 +145,30 @@ jobs:
       - name: Purging the Resources
         if: success()
         run: |
-
-          set -e 
-          # Define variables
-          OPENAI_COMMON_PART="-openai"
-          openai_name="${{ env.SOLUTION_PREFIX }}${OPENAI_COMMON_PART}"
-          echo "Azure OpenAI: $openai_name"
-
-          
-          # Purge OpenAI Resource
-          echo "Purging the OpenAI Resource..."
-          if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/eastus2/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/deletedAccounts/$openai_name --verbose; then
-            echo "Failed to purge openai resource: $openai_name"
-          else
-            echo "Purged the openai resource: $openai_name"
-          fi
-   
-         
-
-
-          echo "Resource purging completed successfully"
+            set -e
+            # Define the resource name pattern
+            OPENAI_COMMON_PART="-openai"
+            openai_pattern="${{ env.SOLUTION_PREFIX }}${OPENAI_COMMON_PART}*"
+            echo "Azure OpenAI pattern: $openai_pattern"
+        
+            # Get the list of resources matching the pattern
+            openai_resources=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "[?name=='${openai_pattern}'].name" -o tsv)
+        
+            if [ -z "$openai_resources" ]; then
+              echo "No OpenAI resources found matching the pattern."
+            else
+              echo "Found OpenAI resources: $openai_resources"
+              # Loop through the resources and delete them
+              for openai_name in $openai_resources; do
+                echo "Purging the OpenAI resource: $openai_name"
+                if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/eastus2/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/deletedAccounts/$openai_name --verbose; then
+                  echo "Failed to purge OpenAI resource: $openai_name"
+                else
+                  echo "Purged the OpenAI resource: $openai_name"
+                fi
+              done
+            fi
+        
 
     #   - name: Send Notification on Failure
     #     if: failure()
