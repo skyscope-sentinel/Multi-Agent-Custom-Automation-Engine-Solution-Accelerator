@@ -68,8 +68,8 @@ jobs:
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
             --template-file deploy/macae.bicep \
-            --parameters prefix=${{ env.SOLUTION_PREFIX }}
-            --parameters azureOpenAILocation=eastus\
+            --parameters prefix=${{ env.SOLUTION_PREFIX }} \
+            --parameters azureOpenAILocation=eastus \
             --parameters cosmosLocation=westus
 
       - name: List KeyVaults and Store in Array
