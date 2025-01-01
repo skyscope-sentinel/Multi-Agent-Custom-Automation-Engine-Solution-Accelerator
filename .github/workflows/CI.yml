@@ -30,41 +30,30 @@ jobs:
       - name: Generate Resource Group Name
         id: generate_rg_name
         run: |
-          echo "Generating a unique resource group name..."
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           COMMON_PART="pslautomationRes"
           UNIQUE_RG_NAME="${COMMON_PART}${TIMESTAMP}"
           echo "RESOURCE_GROUP_NAME=${UNIQUE_RG_NAME}" >> $GITHUB_ENV
-          echo "Generated Resource_GROUP_PREFIX: ${UNIQUE_RG_NAME}" 
-      
+
       - name: Check and Create Resource Group
         id: check_create_rg
         run: |
-          set -e  
-          echo "Checking if resource group exists..."
           rg_exists=$(az group exists --name ${{ env.RESOURCE_GROUP_NAME }})
           if [ "$rg_exists" = "false" ]; then
-            echo "Resource group does not exist. Creating..."
-            az group create --name ${{ env.RESOURCE_GROUP_NAME }} --location eastus2 || { echo "Error creating resource group"; exit 1; }
-          else
-            echo "Resource group already exists."
+            az group create --name ${{ env.RESOURCE_GROUP_NAME }} --location eastus2
           fi
 
       - name: Generate Unique Solution Prefix
         id: generate_solution_prefix
         run: |
-          set -e
           COMMON_PART="pslr"
-          TIMESTAMP=$(date +%s)  
-          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 3) 
-          UNIQUE_SOLUTION_PREFIX="${COMMON_PART}${UPDATED_TIMESTAMP}"
+          TIMESTAMP=$(date +%s)
+          UNIQUE_SOLUTION_PREFIX="${COMMON_PART}$(echo $TIMESTAMP | tail -c 3)"
           echo "SOLUTION_PREFIX=${UNIQUE_SOLUTION_PREFIX}" >> $GITHUB_ENV
-          echo "Generated SOLUTION_PREFIX: ${UNIQUE_SOLUTION_PREFIX}" 
 
       - name: Deploy Bicep Template
         id: deploy
         run: |
-          set -e
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
             --template-file deploy/macae.bicep \
@@ -72,92 +61,33 @@ jobs:
             --parameters azureOpenAILocation=westus \
             --parameters cosmosLocation=westus
 
- 
-          
+      - name: Retrieve Deployed OpenAI Resource Name
+        id: get_openai_name
+        run: |
+          PREFIX="${{ env.SOLUTION_PREFIX }}-openai"
+          RESOURCE_GROUP="${{ env.RESOURCE_GROUP_NAME }}"
+          OPENAI_RESOURCE_NAME=$(az resource list --resource-group $RESOURCE_GROUP --query "[?contains(name, '$PREFIX')].name | [0]" -o tsv)
+          if [ -z "$OPENAI_RESOURCE_NAME" ]; then
+            echo "Failed to find the OpenAI resource in the resource group."
+            exit 1
+          fi
+          echo "OPENAI_RESOURCE_NAME=${OPENAI_RESOURCE_NAME}" >> $GITHUB_ENV
+
+      - name: Use OpenAI Resource Name
+        run: |
+          echo "Deployed OpenAI Resource Name: ${{ env.OPENAI_RESOURCE_NAME }}"
+
       - name: Delete Bicep Deployment
         if: success()
         run: |
-          set -e  
-          echo "Checking if resource group exists..."
-          rg_exists=$(az group exists --name ${{ env.RESOURCE_GROUP_NAME }})
-          if [ "$rg_exists" = "true" ]; then
-            echo "Resource group exist. Cleaning..."
-            az group delete \
-                --name ${{ env.RESOURCE_GROUP_NAME }} \
-                --yes \
-                --no-wait
-            echo "Resource group deleted...  ${{ env.RESOURCE_GROUP_NAME }}"
-          else
-            echo "Resource group does not exists."
-          fi
+          az group delete --name ${{ env.RESOURCE_GROUP_NAME }} --yes --no-wait
 
-      - name: Wait for resource deletion to complete
-        run: |
-
-     
-          
-          # Append new resources to the array
-          resources_to_check+=("${{ env.SOLUTION_PREFIX }}-openai" )
-          echo "List of resources to check: ${resources_to_check[@]}"
-         
-          # Get the list of resources in YAML format
-          resource_list=$(az resource list --resource-group ${{ env.RESOURCE_GROUP_NAME }} --output yaml)
-
-          # Maximum number of retries
-          max_retries=3
-
-          # Retry intervals in seconds (30, 60, 120)
-          retry_intervals=(30 60 120)
-
-          # Retry mechanism to check resources
-          retries=0
-          while true; do
-            resource_found=false
-
-            # Iterate through the resources to check
-            for resource in "${resources_to_check[@]}"; do
-              echo "Checking resource: $resource"
-              if echo "$resource_list" | grep -q "name: $resource"; then
-                echo "Resource '$resource' exists in the resource group."
-                resource_found=true
-              else
-                echo "Resource '$resource' does not exist in the resource group."
-              fi
-            done
-
-            # If any resource exists, retry
-            if [ "$resource_found" = true ]; then
-              retries=$((retries + 1))
-              if [ "$retries" -ge "$max_retries" ]; then
-                echo "Maximum retry attempts reached. Exiting."
-                break
-              else
-                # Wait for the appropriate interval for the current retry
-                echo "Waiting for ${retry_intervals[$retries-1]} seconds before retrying..."
-                sleep ${retry_intervals[$retries-1]}
-              fi
-            else
-              echo "No resources found. Exiting."
-              break
-            fi
-          done
-
-      - name: Purging the Resources
+      - name: Purge OpenAI Resource
         if: success()
         run: |
-            set -e
-            # Define the resource name pattern
-            OPENAI_COMMON_PART="-openai"
-            openai_pattern="${{ env.SOLUTION_PREFIX }}${OPENAI_COMMON_PART}*"
-            echo "Azure OpenAI pattern: $openai_pattern"
-            
-                if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/eastus2/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/deletedAccounts/$openai_name --verbose; then
-                  echo "Failed to purge OpenAI resource: $openai_name"
-                else
-                  echo "Purged the OpenAI resource: $openai_name"
-                fi
-              done
-            fi
+          az resource delete --ids \
+            /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.CognitiveServices/accounts/${{ env.OPENAI_RESOURCE_NAME }}
+
         
 
     #   - name: Send Notification on Failure
