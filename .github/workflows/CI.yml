@@ -68,7 +68,7 @@ jobs:
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
             --template-file deploy/macae.bicep \
-            --parameters solutionPrefix=${{ env.SOLUTION_PREFIX }}
+            --parameters prefix=${{ env.SOLUTION_PREFIX }}
 
       - name: List KeyVaults and Store in Array
         id: list_keyvaults
