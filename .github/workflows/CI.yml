@@ -85,11 +85,15 @@ jobs:
       - name: Purge OpenAI Resource
         if: success()
         run: |
-          az resource delete --ids \
-            /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/providers/Microsoft.CognitiveServices/accounts/${{ env.OPENAI_RESOURCE_NAME }}
+                    # Purge OpenAI Resource
+                echo "Purging the OpenAI Resource..."
+                if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/westus/resourceGroups/${{ env.RESOURCE_GROUP_NAME }}/deletedAccounts/${{ env.OPENAI_RESOURCE_NAME }}--verbose; then
+                    echo "Failed to purge openai resource: $openai_name"
+                else
+                    echo "Purged the openai resource: $openai_name"
+                fi            
 
         
-
     #   - name: Send Notification on Failure
     #     if: failure()
     #     run: |
