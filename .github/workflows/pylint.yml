@@ -22,4 +22,4 @@ jobs:
     - name: Run flake8 and pylint
       run: |
         
-        flake8 --config=src/.flake8 src/backend
+        flake8 --config=.flake8 
