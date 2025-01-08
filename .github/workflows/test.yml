@@ -31,7 +31,4 @@ jobs:
         run: |
           pytest --cov=. --cov-report=term-missing --cov-report=xml
 
-      - name: Display coverage report
-        run: |
-          echo "Coverage report:"
-          cat coverage.xml | head -n 50
+
