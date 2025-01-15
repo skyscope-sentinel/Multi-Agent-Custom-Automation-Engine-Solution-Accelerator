@@ -3,12 +3,14 @@ from typing import Any, Dict, List, Optional
 from autogen_core.base import AgentId
 from autogen_core.base.intervention import DefaultInterventionHandler
 
-from models.messages import GetHumanInputMessage, GroupChatMessage
+from src.backend.models.messages import GroupChatMessage
+
+from src.backend.models.messages import GetHumanInputMessage
 
 
 class NeedsUserInputHandler(DefaultInterventionHandler):
     def __init__(self):
-        self.question_for_human: Optional[GetHumanInputMessage] = None
+        self.question_for_human: Optional[GetHumanInputMessage] = None # type: ignore
         self.messages: List[Dict[str, Any]] = []
 
     async def on_publish(self, message: Any, *, sender: AgentId | None) -> Any:
@@ -17,7 +19,7 @@ class NeedsUserInputHandler(DefaultInterventionHandler):
         print(
             f"NeedsUserInputHandler received message: {message} from sender: {sender}"
         )
-        if isinstance(message, GetHumanInputMessage):
+        if isinstance(message, GetHumanInputMessage): # type: ignore
             self.question_for_human = message
             self.messages.append(
                 {

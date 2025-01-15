@@ -12,8 +12,8 @@ from autogen_core.components.models import (AssistantMessage,
                                             UserMessage)
 from azure.cosmos.partition_key import PartitionKey
 
-from config import Config
-from models.messages import BaseDataModel, Plan, Session, Step, AgentMessage
+from src.backend.config import Config
+from src.backend.models.messages import BaseDataModel, Plan, Session, Step, AgentMessage
 
 
 class CosmosBufferedChatCompletionContext(BufferedChatCompletionContext):
@@ -244,13 +244,13 @@ class CosmosBufferedChatCompletionContext(BufferedChatCompletionContext):
                 content = item.get("content", {})
                 message_type = content.get("type")
                 if message_type == "SystemMessage":
-                    message = SystemMessage.model_validate(content)
+                    message = SystemMessage(**content)
                 elif message_type == "UserMessage":
-                    message = UserMessage.model_validate(content)
+                    message = UserMessage(**content)
                 elif message_type == "AssistantMessage":
-                    message = AssistantMessage.model_validate(content)
+                    message = AssistantMessage(**content)
                 elif message_type == "FunctionExecutionResultMessage":
-                    message = FunctionExecutionResultMessage.model_validate(content)
+                    message = FunctionExecutionResultMessage(**content)
                 else:
                     continue
                 messages.append(message)
