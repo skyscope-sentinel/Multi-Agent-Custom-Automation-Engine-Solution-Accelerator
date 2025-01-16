@@ -244,13 +244,13 @@ class CosmosBufferedChatCompletionContext(BufferedChatCompletionContext):
                 content = item.get("content", {})
                 message_type = content.get("type")
                 if message_type == "SystemMessage":
-                    message = SystemMessage(**content)
+                    SystemMessage.model_validate(content)
                 elif message_type == "UserMessage":
-                    message = UserMessage(**content)
+                    message = UserMessage.model_validate(content)
                 elif message_type == "AssistantMessage":
-                    message = AssistantMessage(**content)
+                    message = AssistantMessage.model_validate(content)
                 elif message_type == "FunctionExecutionResultMessage":
-                    message = FunctionExecutionResultMessage(**content)
+                    message = FunctionExecutionResultMessage.model_validate(content)
                 else:
                     continue
                 messages.append(message)

@@ -265,13 +265,13 @@ class GroupChatMessage(BaseModel):
         body_type = body_data.pop("type")
 
         if body_type == "SystemMessage":
-            body = SystemMessage(**body_data)
+            body = SystemMessage.from_dict(body_data)
         elif body_type == "UserMessage":
-            body = UserMessage(**body_data)
+            body = UserMessage.from_dict(body_data)
         elif body_type == "AssistantMessage":
-            body = AssistantMessage(**body_data)
+            body = AssistantMessage.from_dict(body_data)
         elif body_type == "FunctionExecutionResultMessage":
-            body = FunctionExecutionResultMessage(**body_data)
+            body = FunctionExecutionResultMessage.from_dict(body_data)
         else:
             raise ValueError(f"Unknown message type: {body_type}")
 
