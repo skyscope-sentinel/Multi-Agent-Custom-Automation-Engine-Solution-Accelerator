@@ -19,7 +19,7 @@ class NeedsUserInputHandler(DefaultInterventionHandler):
         print(
             f"NeedsUserInputHandler received message: {message} from sender: {sender}"
         )
-        if isinstance(message, GetHumanInputMessage): # type: ignore
+        if isinstance(message, GetHumanInputMessage):
             self.question_for_human = message
             self.messages.append(
                 {
