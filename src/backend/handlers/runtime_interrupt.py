@@ -10,7 +10,7 @@ from src.backend.models.messages import GetHumanInputMessage
 
 class NeedsUserInputHandler(DefaultInterventionHandler):
     def __init__(self):
-        self.question_for_human: Optional[GetHumanInputMessage] = None # type: ignore
+        self.question_for_human: Optional[GetHumanInputMessage] = None
         self.messages: List[Dict[str, Any]] = []
 
     async def on_publish(self, message: Any, *, sender: AgentId | None) -> Any:
