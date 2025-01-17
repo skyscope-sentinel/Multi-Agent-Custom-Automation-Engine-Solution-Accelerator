@@ -30,7 +30,7 @@ import logging
 # Initialize logging
 # from otlp_tracing import configure_oltp_tracing
 
-from models.messages import (
+from src.backend.models.messages import (
     InputTask,
     Plan,
 )
