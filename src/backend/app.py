@@ -4,15 +4,15 @@ import logging
 import os
 import uuid
 from typing import List, Optional
-from middleware.health_check import HealthCheckMiddleware
+from src.backend.middleware.health_check import HealthCheckMiddleware
 from autogen_core.base import AgentId
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from auth.auth_utils import get_authenticated_user_details
-from config import Config
-from context.cosmos_memory import CosmosBufferedChatCompletionContext
-from models.messages import (
+from src.backend.auth.auth_utils import get_authenticated_user_details
+from src.backend.config import Config
+from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
+from src.backend.models.messages import (
     BaseDataModel,
     HumanFeedback,
     HumanClarification,
@@ -23,7 +23,7 @@ from models.messages import (
     AgentMessage,
     PlanWithSteps,
 )
-from utils import initialize_runtime_and_context, retrieve_all_agent_tools, rai_success
+from src.backend.utils import initialize_runtime_and_context, retrieve_all_agent_tools, rai_success
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from azure.monitor.opentelemetry import configure_azure_monitor

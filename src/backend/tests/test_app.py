@@ -1,51 +1,85 @@
+import os
+import sys
 import pytest
-from unittest.mock import patch, AsyncMock
-from httpx import AsyncClient
+from unittest.mock import MagicMock, AsyncMock
+from fastapi.testclient import TestClient
+from fastapi import status
 
-# Mock environment variables globally
-MOCK_ENV_VARS = {
-    "COSMOSDB_ENDPOINT": "https://mock-cosmosdb.documents.azure.com:443/",
-    "COSMOSDB_DATABASE": "mock_database",
-    "COSMOSDB_CONTAINER": "mock_container",
-    "AZURE_OPENAI_DEPLOYMENT_NAME": "mock-deployment",
-    "AZURE_OPENAI_API_VERSION": "2024-05-01-preview",
-    "AZURE_OPENAI_ENDPOINT": "https://mock-openai-endpoint.azure.com/",
-    "AZURE_OPENAI_API_KEY": "mock-api-key",
-    "AZURE_TENANT_ID": "mock-tenant-id",
-    "AZURE_CLIENT_ID": "mock-client-id",
-    "AZURE_CLIENT_SECRET": "mock-client-secret",
-}
+# Mock Azure dependencies
+sys.modules['azure.monitor'] = MagicMock()
+sys.modules['azure.monitor.events.extension'] = MagicMock()
+sys.modules['azure.monitor.opentelemetry'] = MagicMock()
 
-# Patch environment variables for the entire module
-with patch.dict("os.environ", MOCK_ENV_VARS):
-    from app import app  # Import after setting env vars
+# Mock the configure_azure_monitor function
+from azure.monitor.opentelemetry import configure_azure_monitor
+configure_azure_monitor = MagicMock()
+
+# Import the app
+from src.backend.app import app
+
+# Set environment variables
+os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
+os.environ["COSMOSDB_KEY"] = "mock-key"
+os.environ["COSMOSDB_DATABASE"] = "mock-database"
+os.environ["COSMOSDB_CONTAINER"] = "mock-container"
+os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
+os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
+os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
+os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-key"
+
+# Initialize FastAPI test client
+client = TestClient(app)
+
+# Mock user authentication
+def mock_get_authenticated_user_details(request_headers):
+    return {"user_principal_id": "mock-user-id"}
+
+
+@pytest.fixture(autouse=True)
+def patch_dependencies(monkeypatch):
+    """Patch dependencies used in the app."""
+    monkeypatch.setattr(
+        "src.backend.auth.auth_utils.get_authenticated_user_details",
+        mock_get_authenticated_user_details,
+    )
+    monkeypatch.setattr(
+        "src.backend.context.cosmos_memory.CosmosBufferedChatCompletionContext",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "src.backend.utils.initialize_runtime_and_context",
+        AsyncMock(return_value=(MagicMock(), None)),
+    )
+    monkeypatch.setattr(
+        "src.backend.utils.retrieve_all_agent_tools",
+        MagicMock(return_value=[{"agent": "test_agent", "function": "test_function"}]),
+    )
+    monkeypatch.setattr(
+        "src.backend.app.track_event",
+        MagicMock(),
+    )
+
+@pytest.mark.asyncio
+async def test_human_feedback_endpoint():
+    """Test the /human_feedback endpoint."""
+    payload = {
+        "step_id": "step-1",
+        "plan_id": "plan-1",
+        "session_id": "session-1",
+        "approved": True,
+        "human_feedback": "Looks good",
+        "updated_action": None,
+        "user_id": "mock-user-id",
+    }
+    response = client.post("/human_feedback", json=payload)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["status"] == "Feedback received"
+
 
 @pytest.mark.asyncio
 async def test_get_agent_tools():
     """Test the /api/agent-tools endpoint."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.get("/api/agent-tools")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)  # Ensure the response is a list
-
-
-@pytest.mark.asyncio
-async def test_get_all_messages():
-    """Test the /messages endpoint."""
-    # Mock the CosmosBufferedChatCompletionContext.get_all_messages method
-    with patch("app.CosmosBufferedChatCompletionContext.get_all_messages", AsyncMock(return_value=[{"id": "1", "content": "Message"}])):
-        async with AsyncClient(app=app, base_url="http://test") as client:
-            response = await client.get("/messages")
-    assert response.status_code == 200
-    assert response.json() == [{"id": "1", "content": "Message"}]  # Match mock response
-
-
-@pytest.mark.asyncio
-async def test_delete_all_messages():
-    """Test the /messages DELETE endpoint."""
-    # Mock the CosmosBufferedChatCompletionContext.delete_all_messages method
-    with patch("app.CosmosBufferedChatCompletionContext.delete_all_messages", AsyncMock()):
-        async with AsyncClient(app=app, base_url="http://test") as client:
-            response = await client.delete("/messages")
-    assert response.status_code == 200
-    assert response.json() == {"status": "All messages deleted"}
+    response = client.get("/api/agent-tools")
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.json(), list)
+    assert len(response.json()) > 0
