@@ -4,9 +4,21 @@ on:
   push:
     branches:
       - main
+      - dev
+      - demo
+      - hotfix
   pull_request:
+    types:
+      - opened
+      - ready_for_review
+      - reopened
+      - synchronize
     branches:
       - main
+      - main
+      - dev
+      - demo
+      - hotfix
 
 jobs:
   test:
