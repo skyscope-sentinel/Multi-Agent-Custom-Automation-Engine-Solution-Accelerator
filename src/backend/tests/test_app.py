@@ -11,8 +11,6 @@ sys.modules["azure.monitor"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
 
-
-
 # Set environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"

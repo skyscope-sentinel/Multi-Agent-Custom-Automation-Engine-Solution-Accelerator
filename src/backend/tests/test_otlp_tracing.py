@@ -6,8 +6,6 @@ from otlp_tracing import configure_oltp_tracing  # Import directly since it's in
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-
-
 @patch("otlp_tracing.OTLPSpanExporter")
 @patch("otlp_tracing.BatchSpanProcessor")
 @patch("otlp_tracing.TracerProvider")
