@@ -5,15 +5,13 @@ from unittest.mock import MagicMock, AsyncMock
 from fastapi.testclient import TestClient
 # Import the app
 from src.backend.app import app
-# Mock the configure_azure_monitor function
-from azure.monitor.opentelemetry import configure_azure_monitor
 
 # Mock Azure dependencies
 sys.modules["azure.monitor"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
 
-configure_azure_monitor = MagicMock()
+
 
 # Set environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
