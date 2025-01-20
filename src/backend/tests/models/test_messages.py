@@ -1,7 +1,6 @@
 # File: test_message.py
 
 import uuid
-import pytest
 from src.backend.models.messages import (
     DataType,
     BAgentType,
@@ -12,14 +11,11 @@ from src.backend.models.messages import (
     Step,
     Plan,
     AgentMessage,
-    GroupChatMessage,
-    ApprovalRequest,
     ActionRequest,
-    ActionResponse,
     HumanFeedback,
-    InputTask,
 )
-from autogen_core.components.models import SystemMessage
+
+
 def test_enum_values():
     """Test enumeration values for consistency."""
     assert DataType.session == "session"
@@ -28,6 +24,7 @@ def test_enum_values():
     assert StepStatus.completed == "completed"
     assert PlanStatus.in_progress == "in_progress"
     assert HumanFeedbackStatus.requested == "requested"
+
 
 def test_plan_with_steps_update_counts():
     """Test the update_step_counts method in PlanWithSteps."""
@@ -60,6 +57,7 @@ def test_plan_with_steps_update_counts():
     assert plan.failed == 1
     assert plan.overall_status == PlanStatus.completed
 
+
 def test_agent_message_creation():
     """Test creation of an AgentMessage."""
     agent_message = AgentMessage(
@@ -71,6 +69,7 @@ def test_agent_message_creation():
     )
     assert agent_message.data_type == "agent_message"
     assert agent_message.content == "Test message content"
+
 
 def test_action_request_creation():
     """Test the creation of ActionRequest."""
@@ -84,6 +83,7 @@ def test_action_request_creation():
     assert action_request.action == "Review and approve"
     assert action_request.agent == BAgentType.procurement_agent
 
+
 def test_human_feedback_creation():
     """Test HumanFeedback creation."""
     human_feedback = HumanFeedback(
@@ -96,6 +96,7 @@ def test_human_feedback_creation():
     assert human_feedback.approved is True
     assert human_feedback.human_feedback == "Looks good!"
 
+
 def test_plan_initialization():
     """Test Plan model initialization."""
     plan = Plan(
@@ -106,6 +107,7 @@ def test_plan_initialization():
     assert plan.data_type == "plan"
     assert plan.initial_goal == "Complete document processing"
     assert plan.overall_status == PlanStatus.in_progress
+
 
 def test_step_defaults():
     """Test default values for Step model."""

@@ -3,15 +3,18 @@ import os
 from unittest.mock import patch, AsyncMock
 
 # Mock all required environment variables globally before importing utils
-with patch.dict(os.environ, {
-    "COSMOSDB_ENDPOINT": "https://mock-cosmosdb.documents.azure.com:443/",
-    "COSMOSDB_KEY": "mock_key",
-    "AZURE_OPENAI_ENDPOINT": "https://mock-openai-endpoint.azure.com/",
-    "AZURE_OPENAI_API_VERSION": "2024-05-01-preview",
-    "AZURE_OPENAI_DEPLOYMENT_NAME": "mock-deployment",
-    "COSMOSDB_DATABASE": "mock_database",
-    "COSMOSDB_CONTAINER": "mock_container"
-}):
+with patch.dict(
+    os.environ,
+    {
+        "COSMOSDB_ENDPOINT": "https://mock-cosmosdb.documents.azure.com:443/",
+        "COSMOSDB_KEY": "mock_key",
+        "AZURE_OPENAI_ENDPOINT": "https://mock-openai-endpoint.azure.com/",
+        "AZURE_OPENAI_API_VERSION": "2024-05-01-preview",
+        "AZURE_OPENAI_DEPLOYMENT_NAME": "mock-deployment",
+        "COSMOSDB_DATABASE": "mock_database",
+        "COSMOSDB_CONTAINER": "mock_container",
+    },
+):
     from utils import (
         initialize_runtime_and_context,
         runtime_dict,
@@ -70,7 +73,10 @@ async def test_initialize_runtime_and_context_reuse_existing_session(
 @pytest.mark.asyncio
 async def test_initialize_runtime_and_context_user_id_none():
     # Assert ValueError is raised when user_id is None
-    with pytest.raises(ValueError, match="The 'user_id' parameter cannot be None. Please provide a valid user ID."):
+    with pytest.raises(
+        ValueError,
+        match="The 'user_id' parameter cannot be None. Please provide a valid user ID.",
+    ):
         await initialize_runtime_and_context(session_id="test-session-id", user_id=None)
 
 
@@ -96,9 +102,7 @@ def test_rai_success_false(mock_credential, mock_post):
     mock_credential.return_value.get_token.return_value.token = "mock_token"
 
     # Mock API response for content filter
-    mock_post.return_value.json.return_value = {
-        "error": {"code": "content_filter"}
-    }
+    mock_post.return_value.json.return_value = {"error": {"code": "content_filter"}}
 
     result = rai_success("Invalid description with rule violation.")
     assert result is False

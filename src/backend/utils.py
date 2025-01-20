@@ -23,17 +23,12 @@ from src.backend.agents.tech_support import TechSupportAgent, get_tech_support_t
 # from agents.misc import MiscAgent
 from src.backend.config import Config
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
-from src.backend.models.messages import BAgentType, Step
-from collections import defaultdict
+from src.backend.models.messages import BAgentType
 import logging
 
 # Initialize logging
 # from otlp_tracing import configure_oltp_tracing
 
-from src.backend.models.messages import (
-    InputTask,
-    Plan,
-)
 
 logging.basicConfig(level=logging.INFO)
 # tracer = configure_oltp_tracing()

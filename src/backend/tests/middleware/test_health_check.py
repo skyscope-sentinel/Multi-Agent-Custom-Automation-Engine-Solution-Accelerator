@@ -1,12 +1,11 @@
 from src.backend.middleware.health_check import (
     HealthCheckMiddleware,
     HealthCheckResult,
-    HealthCheckSummary,
 )
 from fastapi import FastAPI
 from starlette.testclient import TestClient
 from asyncio import sleep
-import pytest
+
 
 # Updated helper functions for test health checks
 async def successful_check():
@@ -31,6 +30,7 @@ checks = {
 
 app.add_middleware(HealthCheckMiddleware, checks=checks, password="test123")
 
+
 @app.get("/")
 async def root():
     return {"message": "Hello, World!"}
@@ -44,6 +44,7 @@ def test_health_check_success():
     assert response.status_code == 503  # Because one check is failing
     assert response.text == "Service Unavailable"
 
+
 def test_root_endpoint():
     """Test the root endpoint to ensure the app is functioning."""
     client = TestClient(app)
@@ -52,6 +53,7 @@ def test_root_endpoint():
     assert response.status_code == 200
     assert response.json() == {"message": "Hello, World!"}
 
+
 def test_health_check_missing_password():
     """Test the health check endpoint without a password."""
     client = TestClient(app)
@@ -59,6 +61,7 @@ def test_health_check_missing_password():
 
     assert response.status_code == 503  # Unauthorized access without correct password
     assert response.text == "Service Unavailable"
+
 
 def test_health_check_incorrect_password():
     """Test the health check endpoint with an incorrect password."""

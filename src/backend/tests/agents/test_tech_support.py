@@ -1,10 +1,10 @@
 import os
 import sys
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 from autogen_core.components.tools import FunctionTool
 
-sys.modules['azure.monitor.events.extension'] = MagicMock()
+sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 # Set environment variables to mock Config dependencies before any import
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -36,11 +36,9 @@ from src.backend.agents.tech_support import (
     configure_server,
     grant_database_access,
     provide_tech_training,
-    resolve_technical_issue,
     configure_printer,
     set_up_email_signature,
     configure_mobile_device,
-    manage_software_licenses,
     set_up_remote_desktop,
     troubleshoot_hardware_issue,
     manage_network_security,
@@ -80,6 +78,7 @@ async def test_send_welcome_email():
     assert "John Doe" in result
     assert "john.doe@example.com" in result
 
+
 @pytest.mark.asyncio
 async def test_set_up_office_365_account():
     result = await set_up_office_365_account("Jane Smith", "jane.smith@example.com")
@@ -87,17 +86,20 @@ async def test_set_up_office_365_account():
     assert "Jane Smith" in result
     assert "jane.smith@example.com" in result
 
+
 @pytest.mark.asyncio
 async def test_configure_laptop():
     result = await configure_laptop("John Doe", "Dell XPS 15")
     assert "Laptop Configuration" in result
     assert "Dell XPS 15" in result
 
+
 @pytest.mark.asyncio
 async def test_reset_password():
     result = await reset_password("John Doe")
     assert "Password Reset" in result
     assert "John Doe" in result
+
 
 @pytest.mark.asyncio
 async def test_setup_vpn_access():
@@ -147,11 +149,13 @@ async def test_assist_procurement_with_tech_equipment():
     assert "Technical Specifications Provided" in result
     assert "Dell Workstation specs" in result
 
+
 @pytest.mark.asyncio
 async def test_provide_tech_support_for_marketing():
     result = await provide_tech_support_for_marketing("Holiday Campaign")
     assert "Tech Support for Marketing Campaign" in result
     assert "Holiday Campaign" in result
+
 
 @pytest.mark.asyncio
 async def test_assist_product_launch():
@@ -220,6 +224,7 @@ async def test_configure_mobile_device():
     assert "Emily" in result
     assert "iPhone 13" in result
 
+
 @pytest.mark.asyncio
 async def test_set_up_remote_desktop():
     result = await set_up_remote_desktop("Frank")
@@ -260,6 +265,7 @@ async def test_assist_with_video_conferencing_setup():
 async def test_manage_it_inventory():
     result = await manage_it_inventory()
     assert "IT Inventory Managed" in result
+
 
 @pytest.mark.asyncio
 async def test_configure_firewall_rules():
@@ -336,7 +342,9 @@ async def test_manage_system_updates():
 
 @pytest.mark.asyncio
 async def test_configure_digital_signatures():
-    result = await configure_digital_signatures("John Doe", "Company Approved Signature")
+    result = await configure_digital_signatures(
+        "John Doe", "Company Approved Signature"
+    )
     assert "Digital Signatures Configured" in result
     assert "John Doe" in result
     assert "Company Approved Signature" in result

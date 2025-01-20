@@ -15,11 +15,11 @@ from autogen_core.components.tools import Tool
 
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from src.backend.models.messages import (
-    ActionRequest, 
+    ActionRequest,
     ActionResponse,
-    AgentMessage, 
-    Step, 
-    StepStatus
+    AgentMessage,
+    Step,
+    StepStatus,
 )
 from azure.monitor.events.extension import track_event
 

@@ -15,7 +15,6 @@ from pydantic import BaseModel
 
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from src.backend.models.messages import (
-    ActionRequest,
     AgentMessage,
     HumanClarification,
     BAgentType,
