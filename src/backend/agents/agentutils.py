@@ -1,7 +1,9 @@
 import json
 
-from autogen_core.components.models import (AssistantMessage,
-                                            AzureOpenAIChatCompletionClient)
+from autogen_core.components.models import (
+    AssistantMessage,
+    AzureOpenAIChatCompletionClient,
+)
 from pydantic import BaseModel
 
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
@@ -27,7 +29,7 @@ async def extract_and_update_transition_states(
             identifiedTargetState: str
             identifiedTargetTransition: str
 
-        cosmos = CosmosBufferedChatCompletionContext(session_id or "",user_id)
+        cosmos = CosmosBufferedChatCompletionContext(session_id or "", user_id)
         combined_LLM_messages = [
             AssistantMessage(content=step.action, source="GroupChatManager")
         ]

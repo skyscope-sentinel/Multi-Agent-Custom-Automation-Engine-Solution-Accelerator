@@ -8,6 +8,7 @@ from autogen_core.components.tools import FunctionTool, Tool
 from src.backend.agents.base_agent import BaseAgent
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 
+
 async def dummy_function() -> str:
     # This is a placeholder function, for a proper Azure AI Search RAG process.
 
