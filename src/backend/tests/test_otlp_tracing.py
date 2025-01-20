@@ -1,10 +1,12 @@
 import sys
 import os
+import pytest
 from unittest.mock import patch, MagicMock
-from otlp_tracing import configure_oltp_tracing  # Import directly since it's in backend
 
 # Add the backend directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from otlp_tracing import configure_oltp_tracing  # Import directly since it's in backend
 
 
 @patch("otlp_tracing.OTLPSpanExporter")
@@ -13,11 +15,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 @patch("otlp_tracing.trace")
 @patch("otlp_tracing.Resource")
 def test_configure_oltp_tracing(
-    mock_resource,
-    mock_trace,
-    mock_tracer_provider,
-    mock_batch_processor,
-    mock_otlp_exporter,
+    mock_resource, mock_trace, mock_tracer_provider, mock_batch_processor, mock_otlp_exporter
 ):
     # Mock objects
     mock_resource.return_value = {"service.name": "macwe"}
@@ -37,8 +35,6 @@ def test_configure_oltp_tracing(
     mock_tracer_provider_instance.add_span_processor.assert_called_once_with(
         mock_batch_processor.return_value
     )
-    mock_trace.set_tracer_provider.assert_called_once_with(
-        mock_tracer_provider_instance
-    )
+    mock_trace.set_tracer_provider.assert_called_once_with(mock_tracer_provider_instance)
 
     assert tracer_provider == mock_tracer_provider_instance

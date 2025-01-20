@@ -1,17 +1,17 @@
 from typing import List
-
+ 
 from autogen_core.base import AgentId
 from autogen_core.components import default_subscription
 from autogen_core.components.models import AzureOpenAIChatCompletionClient
 from autogen_core.components.tools import FunctionTool, Tool
 from typing_extensions import Annotated
-
+ 
 from src.backend.agents.base_agent import BaseAgent
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
-
+ 
 formatting_instructions = "Instructions: returning the output of this function call verbatim to the user in markdown. Then write AGENT SUMMARY: and then include a summary of what you did."
-
-
+ 
+ 
 # Define new Tech tools (functions)
 async def send_welcome_email(employee_name: str, email_address: str) -> str:
     """Send a welcome email to a new employee as part of onboarding."""
@@ -22,8 +22,8 @@ async def send_welcome_email(employee_name: str, email_address: str) -> str:
         f"A welcome email has been successfully sent to {employee_name} at {email_address}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def set_up_office_365_account(employee_name: str, email_address: str) -> str:
     """Set up an Office 365 account for an employee."""
     return (
@@ -33,8 +33,8 @@ async def set_up_office_365_account(employee_name: str, email_address: str) -> s
         f"An Office 365 account has been successfully set up for {employee_name} at {email_address}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_laptop(employee_name: str, laptop_model: str) -> str:
     """Configure a laptop for a new employee."""
     return (
@@ -44,8 +44,8 @@ async def configure_laptop(employee_name: str, laptop_model: str) -> str:
         f"The laptop {laptop_model} has been successfully configured for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def reset_password(employee_name: str) -> str:
     """Reset the password for an employee."""
     return (
@@ -54,8 +54,8 @@ async def reset_password(employee_name: str) -> str:
         f"The password for {employee_name} has been successfully reset.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def setup_vpn_access(employee_name: str) -> str:
     """Set up VPN access for an employee."""
     return (
@@ -64,8 +64,8 @@ async def setup_vpn_access(employee_name: str) -> str:
         f"VPN access has been successfully set up for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def troubleshoot_network_issue(issue_description: str) -> str:
     """Assist in troubleshooting network issues reported."""
     return (
@@ -74,8 +74,8 @@ async def troubleshoot_network_issue(issue_description: str) -> str:
         f"The network issue described as '{issue_description}' has been successfully resolved.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def install_software(employee_name: str, software_name: str) -> str:
     """Install software for an employee."""
     return (
@@ -85,8 +85,8 @@ async def install_software(employee_name: str, software_name: str) -> str:
         f"The software '{software_name}' has been successfully installed for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def update_software(employee_name: str, software_name: str) -> str:
     """Update software for an employee."""
     return (
@@ -96,8 +96,8 @@ async def update_software(employee_name: str, software_name: str) -> str:
         f"The software '{software_name}' has been successfully updated for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_data_backup(employee_name: str) -> str:
     """Manage data backup for an employee's device."""
     return (
@@ -106,8 +106,8 @@ async def manage_data_backup(employee_name: str) -> str:
         f"Data backup has been successfully configured for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def handle_cybersecurity_incident(incident_details: str) -> str:
     """Handle a reported cybersecurity incident."""
     return (
@@ -116,8 +116,8 @@ async def handle_cybersecurity_incident(incident_details: str) -> str:
         f"The cybersecurity incident described as '{incident_details}' has been successfully handled.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def assist_procurement_with_tech_equipment(equipment_details: str) -> str:
     """Assist procurement with technical specifications of equipment."""
     return (
@@ -126,8 +126,8 @@ async def assist_procurement_with_tech_equipment(equipment_details: str) -> str:
         f"Technical specifications for the following equipment have been provided: {equipment_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def collaborate_with_code_deployment(project_name: str) -> str:
     """Collaborate with CodeAgent for code deployment."""
     return (
@@ -136,8 +136,8 @@ async def collaborate_with_code_deployment(project_name: str) -> str:
         f"Collaboration on the deployment of project '{project_name}' has been successfully completed.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def provide_tech_support_for_marketing(campaign_name: str) -> str:
     """Provide technical support for a marketing campaign."""
     return (
@@ -146,8 +146,8 @@ async def provide_tech_support_for_marketing(campaign_name: str) -> str:
         f"Technical support has been successfully provided for the marketing campaign '{campaign_name}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def assist_product_launch(product_name: str) -> str:
     """Provide tech support for a new product launch."""
     return (
@@ -156,8 +156,8 @@ async def assist_product_launch(product_name: str) -> str:
         f"Technical support has been successfully provided for the product launch of '{product_name}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def implement_it_policy(policy_name: str) -> str:
     """Implement and manage an IT policy."""
     return (
@@ -166,8 +166,8 @@ async def implement_it_policy(policy_name: str) -> str:
         f"The IT policy '{policy_name}' has been successfully implemented.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_cloud_service(service_name: str) -> str:
     """Manage cloud services used by the company."""
     return (
@@ -176,8 +176,8 @@ async def manage_cloud_service(service_name: str) -> str:
         f"The cloud service '{service_name}' has been successfully managed.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_server(server_name: str) -> str:
     """Configure a server."""
     return (
@@ -186,8 +186,8 @@ async def configure_server(server_name: str) -> str:
         f"The server '{server_name}' has been successfully configured.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def grant_database_access(employee_name: str, database_name: str) -> str:
     """Grant database access to an employee."""
     return (
@@ -197,8 +197,8 @@ async def grant_database_access(employee_name: str, database_name: str) -> str:
         f"Access to the database '{database_name}' has been successfully granted to {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def provide_tech_training(employee_name: str, tool_name: str) -> str:
     """Provide technical training on new tools."""
     return (
@@ -208,8 +208,8 @@ async def provide_tech_training(employee_name: str, tool_name: str) -> str:
         f"Technical training on '{tool_name}' has been successfully provided to {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def resolve_technical_issue(issue_description: str) -> str:
     """Resolve general technical issues reported by employees."""
     return (
@@ -218,8 +218,8 @@ async def resolve_technical_issue(issue_description: str) -> str:
         f"The technical issue described as '{issue_description}' has been successfully resolved.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_printer(employee_name: str, printer_model: str) -> str:
     """Configure a printer for an employee."""
     return (
@@ -229,8 +229,8 @@ async def configure_printer(employee_name: str, printer_model: str) -> str:
         f"The printer '{printer_model}' has been successfully configured for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def set_up_email_signature(employee_name: str, signature: str) -> str:
     """Set up an email signature for an employee."""
     return (
@@ -240,8 +240,8 @@ async def set_up_email_signature(employee_name: str, signature: str) -> str:
         f"The email signature for {employee_name} has been successfully set up as '{signature}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_mobile_device(employee_name: str, device_model: str) -> str:
     """Configure a mobile device for an employee."""
     return (
@@ -251,8 +251,8 @@ async def configure_mobile_device(employee_name: str, device_model: str) -> str:
         f"The mobile device '{device_model}' has been successfully configured for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_software_licenses(software_name: str, license_count: int) -> str:
     """Manage software licenses for a specific software."""
     return (
@@ -262,8 +262,8 @@ async def manage_software_licenses(software_name: str, license_count: int) -> st
         f"{license_count} licenses for the software '{software_name}' have been successfully managed.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def set_up_remote_desktop(employee_name: str) -> str:
     """Set up remote desktop access for an employee."""
     return (
@@ -272,8 +272,8 @@ async def set_up_remote_desktop(employee_name: str) -> str:
         f"Remote desktop access has been successfully set up for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def troubleshoot_hardware_issue(issue_description: str) -> str:
     """Assist in troubleshooting hardware issues reported."""
     return (
@@ -282,8 +282,8 @@ async def troubleshoot_hardware_issue(issue_description: str) -> str:
         f"The hardware issue described as '{issue_description}' has been successfully resolved.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_network_security() -> str:
     """Manage network security protocols."""
     return (
@@ -291,8 +291,8 @@ async def manage_network_security() -> str:
         f"Network security protocols have been successfully managed.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def update_firmware(device_name: str, firmware_version: str) -> str:
     """Update firmware for a specific device."""
     return (
@@ -302,8 +302,8 @@ async def update_firmware(device_name: str, firmware_version: str) -> str:
         f"The firmware for '{device_name}' has been successfully updated to version '{firmware_version}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def assist_with_video_conferencing_setup(
     employee_name: str, platform: str
 ) -> str:
@@ -315,8 +315,8 @@ async def assist_with_video_conferencing_setup(
         f"Video conferencing has been successfully set up for {employee_name} on the platform '{platform}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_it_inventory() -> str:
     """Manage IT inventory records."""
     return (
@@ -324,8 +324,8 @@ async def manage_it_inventory() -> str:
         f"IT inventory records have been successfully managed.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_firewall_rules(rules_description: str) -> str:
     """Configure firewall rules."""
     return (
@@ -334,8 +334,8 @@ async def configure_firewall_rules(rules_description: str) -> str:
         f"The firewall rules described as '{rules_description}' have been successfully configured.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_virtual_machines(vm_details: str) -> str:
     """Manage virtual machines."""
     return (
@@ -344,8 +344,8 @@ async def manage_virtual_machines(vm_details: str) -> str:
         f"Virtual machines have been successfully managed with the following details: {vm_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def provide_tech_support_for_event(event_name: str) -> str:
     """Provide technical support for a company event."""
     return (
@@ -354,8 +354,8 @@ async def provide_tech_support_for_event(event_name: str) -> str:
         f"Technical support has been successfully provided for the event '{event_name}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_network_storage(employee_name: str, storage_details: str) -> str:
     """Configure network storage for an employee."""
     return (
@@ -365,8 +365,8 @@ async def configure_network_storage(employee_name: str, storage_details: str) ->
         f"Network storage has been successfully configured for {employee_name} with the following details: {storage_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def set_up_two_factor_authentication(employee_name: str) -> str:
     """Set up two-factor authentication for an employee."""
     return (
@@ -375,8 +375,8 @@ async def set_up_two_factor_authentication(employee_name: str) -> str:
         f"Two-factor authentication has been successfully set up for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def troubleshoot_email_issue(employee_name: str, issue_description: str) -> str:
     """Assist in troubleshooting email issues reported."""
     return (
@@ -386,8 +386,8 @@ async def troubleshoot_email_issue(employee_name: str, issue_description: str) -
         f"The email issue described as '{issue_description}' has been successfully resolved for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_it_helpdesk_tickets(ticket_details: str) -> str:
     """Manage IT helpdesk tickets."""
     return (
@@ -396,8 +396,8 @@ async def manage_it_helpdesk_tickets(ticket_details: str) -> str:
         f"Helpdesk tickets have been successfully managed with the following details: {ticket_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def provide_tech_support_for_sales_team(project_name: str) -> str:
     """Provide technical support for the sales team."""
     return (
@@ -406,8 +406,8 @@ async def provide_tech_support_for_sales_team(project_name: str) -> str:
         f"Technical support has been successfully provided for the sales team project '{project_name}'.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def handle_software_bug_report(bug_details: str) -> str:
     """Handle a software bug report."""
     return (
@@ -416,8 +416,8 @@ async def handle_software_bug_report(bug_details: str) -> str:
         f"The software bug report described as '{bug_details}' has been successfully handled.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def assist_with_data_recovery(employee_name: str, recovery_details: str) -> str:
     """Assist with data recovery for an employee."""
     return (
@@ -427,8 +427,8 @@ async def assist_with_data_recovery(employee_name: str, recovery_details: str) -
         f"Data recovery has been successfully assisted for {employee_name} with the following details: {recovery_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_system_updates(update_details: str) -> str:
     """Manage system updates and patches."""
     return (
@@ -437,8 +437,8 @@ async def manage_system_updates(update_details: str) -> str:
         f"System updates have been successfully managed with the following details: {update_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def configure_digital_signatures(
     employee_name: str, signature_details: str
 ) -> str:
@@ -450,8 +450,8 @@ async def configure_digital_signatures(
         f"Digital signatures have been successfully configured for {employee_name} with the following details: {signature_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_software_deployment(
     software_name: str, deployment_details: str
 ) -> str:
@@ -463,8 +463,8 @@ async def manage_software_deployment(
         f"The software '{software_name}' has been successfully deployed with the following details: {deployment_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def provide_remote_tech_support(employee_name: str) -> str:
     """Provide remote technical support to an employee."""
     return (
@@ -473,8 +473,8 @@ async def provide_remote_tech_support(employee_name: str) -> str:
         f"Remote technical support has been successfully provided for {employee_name}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_network_bandwidth(bandwidth_details: str) -> str:
     """Manage network bandwidth allocation."""
     return (
@@ -483,8 +483,8 @@ async def manage_network_bandwidth(bandwidth_details: str) -> str:
         f"Network bandwidth has been successfully managed with the following details: {bandwidth_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def assist_with_tech_documentation(documentation_details: str) -> str:
     """Assist with creating technical documentation."""
     return (
@@ -493,8 +493,8 @@ async def assist_with_tech_documentation(documentation_details: str) -> str:
         f"Technical documentation has been successfully created with the following details: {documentation_details}.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def monitor_system_performance() -> str:
     """Monitor system performance and health."""
     return (
@@ -502,18 +502,18 @@ async def monitor_system_performance() -> str:
         f"System performance and health have been successfully monitored.\n"
         f"{formatting_instructions}"
     )
-
-
+ 
+ 
 async def manage_software_updates(software_name: str, update_details: str) -> str:
     """Manage updates for a specific software."""
     return f"Updates for {software_name} managed with details: {update_details}."
-
-
+ 
+ 
 async def assist_with_system_migration(migration_details: str) -> str:
     """Assist with system migration tasks."""
     return f"System migration assisted with details: {migration_details}."
-
-
+ 
+ 
 async def get_tech_information(
     query: Annotated[str, "The query for the tech knowledgebase"]
 ) -> str:
@@ -523,7 +523,7 @@ async def get_tech_information(
     Document Name: Contoso's IT Policy and Procedure Manual
     Domain: IT Policy
     Description: A comprehensive guide detailing the IT policies and procedures at Contoso, including acceptable use, security protocols, and incident reporting.
-
+ 
     At Contoso, we prioritize the security and efficiency of our IT infrastructure. All employees are required to adhere to the following policies:
     - Use strong passwords and change them every 90 days.
     - Report any suspicious emails to the IT department immediately.
@@ -531,8 +531,8 @@ async def get_tech_information(
     - Remote access via VPN is allowed only with prior approval.
     """
     return information
-
-
+ 
+ 
 # Create the TechTools list
 def get_tech_support_tools() -> List[Tool]:
     TechTools: List[Tool] = [
@@ -788,8 +788,8 @@ def get_tech_support_tools() -> List[Tool]:
         ),
     ]
     return TechTools
-
-
+ 
+ 
 @default_subscription
 class TechSupportAgent(BaseAgent):
     def __init__(
@@ -811,3 +811,4 @@ class TechSupportAgent(BaseAgent):
             tech_support_tool_agent_id,
             system_message="You are an AI Agent who is knowledgeable about Information Technology. You are able to help with setting up software, accounts, devices, and other IT-related tasks. If you need additional information from the human user asking the question in order to complete a request, ask before calling a function.",
         )
+ 
