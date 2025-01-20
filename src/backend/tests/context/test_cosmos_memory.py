@@ -1,4 +1,8 @@
 import os
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+from azure.cosmos.partition_key import PartitionKey
+from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 
 # Set environment variables globally before importing modules
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -8,11 +12,6 @@ os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from azure.cosmos.partition_key import PartitionKey
-from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 
 
 async def async_iterable(mock_items):

@@ -24,7 +24,6 @@ from src.backend.agents.tech_support import TechSupportAgent, get_tech_support_t
 from src.backend.config import Config
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from src.backend.models.messages import BAgentType
-import logging
 
 # Initialize logging
 # from otlp_tracing import configure_oltp_tracing

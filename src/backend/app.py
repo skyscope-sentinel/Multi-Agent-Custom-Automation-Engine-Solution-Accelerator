@@ -24,7 +24,6 @@ from src.backend.utils import (
     retrieve_all_agent_tools,
     rai_success,
 )
-import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 from azure.monitor.opentelemetry import configure_azure_monitor
 from azure.monitor.events.extension import track_event
