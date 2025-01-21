@@ -436,7 +436,7 @@ async def test_analyze_sales_data_unusual_name():
 async def test_generate_product_report_detailed_type():
     detailed_type = "Annual Sales Report with Profit Margin Analysis"
     result = await generate_product_report("Product AE", detailed_type)
-    assert f"report for **'Product AE'** generated" in result
+    assert "report for **'Product AE'** generated" in result
     assert detailed_type in result
 
 # Test `update_product_price` with a very high precision value
