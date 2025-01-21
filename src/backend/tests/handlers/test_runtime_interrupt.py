@@ -1,6 +1,9 @@
 import pytest
-from unittest.mock import AsyncMock, Mock
-from src.backend.handlers.runtime_interrupt import NeedsUserInputHandler, AssistantResponseHandler
+from unittest.mock import Mock
+from src.backend.handlers.runtime_interrupt import (
+    NeedsUserInputHandler,
+    AssistantResponseHandler,
+)
 from src.backend.models.messages import GetHumanInputMessage, GroupChatMessage
 from autogen_core.base import AgentId
 

@@ -1,4 +1,3 @@
-import pytest
 from src.backend.auth.sample_user import sample_user  # Adjust path as necessary
 
 
@@ -48,10 +47,13 @@ def test_sample_user_keys():
 
 def test_sample_user_values():
     # Proceed with assertions
-    assert sample_user["Accept"].strip() == '*/*'  # Ensure no hidden characters
+    assert sample_user["Accept"].strip() == "*/*"  # Ensure no hidden characters
     assert sample_user["Content-Type"] == "application/json"
     assert sample_user["Disguised-Host"] == "your_app_service.azurewebsites.net"
-    assert sample_user["X-Ms-Client-Principal-Id"] == "00000000-0000-0000-0000-000000000000"
+    assert (
+        sample_user["X-Ms-Client-Principal-Id"]
+        == "00000000-0000-0000-0000-000000000000"
+    )
     assert sample_user["X-Ms-Client-Principal-Name"] == "testusername@constoso.com"
     assert sample_user["X-Forwarded-Proto"] == "https"
 

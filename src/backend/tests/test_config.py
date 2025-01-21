@@ -1,6 +1,5 @@
 # tests/test_config.py
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import os
 
 # Mock environment variables globally
@@ -18,7 +17,12 @@ MOCK_ENV_VARS = {
 }
 
 with patch.dict(os.environ, MOCK_ENV_VARS):
-    from src.backend.config import Config, GetRequiredConfig, GetOptionalConfig, GetBoolConfig
+    from src.backend.config import (
+        Config,
+        GetRequiredConfig,
+        GetOptionalConfig,
+        GetBoolConfig,
+    )
 
 
 @patch.dict(os.environ, MOCK_ENV_VARS)
@@ -31,7 +35,10 @@ def test_get_required_config():
 def test_get_optional_config():
     """Test GetOptionalConfig."""
     assert GetOptionalConfig("NON_EXISTENT_VAR", "default_value") == "default_value"
-    assert GetOptionalConfig("COSMOSDB_DATABASE", "default_db") == MOCK_ENV_VARS["COSMOSDB_DATABASE"]
+    assert (
+        GetOptionalConfig("COSMOSDB_DATABASE", "default_db")
+        == MOCK_ENV_VARS["COSMOSDB_DATABASE"]
+    )
 
 
 @patch.dict(os.environ, MOCK_ENV_VARS)

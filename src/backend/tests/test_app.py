@@ -3,22 +3,31 @@ import sys
 import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 # Mock Azure dependencies
 sys.modules['azure.monitor'] = MagicMock()
 sys.modules['azure.monitor.events.extension'] = MagicMock()
 sys.modules['azure.monitor.opentelemetry'] = MagicMock()
-
+ 
 # Mock the configure_azure_monitor function
 from azure.monitor.opentelemetry import configure_azure_monitor
 configure_azure_monitor = MagicMock()
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 # Set up environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
 os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
+<<<<<<< HEAD
 
 # Import FastAPI app
 from src.backend.app import app
@@ -26,6 +35,15 @@ from src.backend.app import app
 # Initialize FastAPI test client
 client = TestClient(app)
 
+=======
+ 
+# Import FastAPI app
+from src.backend.app import app
+ 
+# Initialize FastAPI test client
+client = TestClient(app)
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 @pytest.fixture(autouse=True)
 def mock_dependencies(monkeypatch):
     """Mock dependencies to simplify tests."""
@@ -37,6 +55,7 @@ def mock_dependencies(monkeypatch):
         "src.backend.utils.retrieve_all_agent_tools",
         lambda: [{"agent": "test_agent", "function": "test_function"}],
     )
+<<<<<<< HEAD
 
 def test_input_task_invalid_json():
     """Test the case where the input JSON is invalid."""
@@ -49,12 +68,27 @@ def test_input_task_invalid_json():
     assert response.status_code == 422
     assert "detail" in response.json()
 
+=======
+ 
+def test_input_task_invalid_json():
+    """Test the case where the input JSON is invalid."""
+    invalid_json = "Invalid JSON data"
+ 
+    headers = {"Authorization": "Bearer mock-token"}
+    response = client.post("/input_task", data=invalid_json, headers=headers)
+ 
+    # Assert response for invalid JSON
+    assert response.status_code == 422
+    assert "detail" in response.json()
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 def test_input_task_missing_description():
     """Test the case where the input task description is missing."""
     input_task = {
         "session_id": None,
         "user_id": "mock-user-id",
     }
+<<<<<<< HEAD
 
     headers = {"Authorization": "Bearer mock-token"}
     response = client.post("/input_task", json=input_task, headers=headers)
@@ -63,6 +97,16 @@ def test_input_task_missing_description():
     assert response.status_code == 422
     assert "detail" in response.json()
 
+=======
+ 
+    headers = {"Authorization": "Bearer mock-token"}
+    response = client.post("/input_task", json=input_task, headers=headers)
+ 
+    # Assert response for missing description
+    assert response.status_code == 422
+    assert "detail" in response.json()
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 def test_input_task_success():
     """Test the successful creation of an InputTask."""
     input_task = {
@@ -70,20 +114,35 @@ def test_input_task_success():
         "description": "Test Task",
         "user_id": "mock-user-id",
     }
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 def test_basic_endpoint():
     """Test a basic endpoint to ensure the app runs."""
     response = client.get("/")
     assert response.status_code == 404  # the root endpoint is not defined
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 def test_input_task_empty_description():
     """Tests if /input_task handles an empty description."""
     empty_task = {"session_id": None, "user_id": "mock-user-id", "description": ""}
     headers = {"Authorization": "Bearer mock-token"}
     response = client.post("/input_task", json=empty_task, headers=headers)
+<<<<<<< HEAD
 
     assert response.status_code == 422
     assert "detail" in response.json()  # Assert error message for missing description 
 
+=======
+ 
+    assert response.status_code == 422
+    assert "detail" in response.json()  # Assert error message for missing description
+ 
+>>>>>>> 341589451a5fb7510cbb81054952855c90a47bf3
 if __name__ == "__main__":
     pytest.main()
