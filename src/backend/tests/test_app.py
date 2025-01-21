@@ -1,9 +1,8 @@
 import os
 import sys
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
-from fastapi import status
 
 # Mock Azure dependencies
 sys.modules['azure.monitor'] = MagicMock()
@@ -14,54 +13,77 @@ sys.modules['azure.monitor.opentelemetry'] = MagicMock()
 from azure.monitor.opentelemetry import configure_azure_monitor
 configure_azure_monitor = MagicMock()
 
-# Import the app
-from src.backend.app import app
-
-# Set environment variables
+# Set up environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
 os.environ["COSMOSDB_CONTAINER"] = "mock-container"
-os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
-os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-key"
+os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
+
+# Import FastAPI app
+from src.backend.app import app
 
 # Initialize FastAPI test client
 client = TestClient(app)
 
-# Mocked data for endpoints
-mock_agent_tools = [{"agent": "test_agent", "function": "test_function", "description": "Test tool"}]
-
-# Mock user authentication
-def mock_get_authenticated_user_details(request_headers):
-    return {"user_principal_id": "mock-user-id"}
-
 @pytest.fixture(autouse=True)
-def patch_dependencies(monkeypatch):
-    """Patch dependencies to simplify tests."""
+def mock_dependencies(monkeypatch):
+    """Mock dependencies to simplify tests."""
     monkeypatch.setattr(
         "src.backend.auth.auth_utils.get_authenticated_user_details",
-        mock_get_authenticated_user_details,
-    )
-    monkeypatch.setattr(
-        "src.backend.context.cosmos_memory.CosmosBufferedChatCompletionContext",
-        MagicMock(),
-    )
-    monkeypatch.setattr(
-        "src.backend.utils.initialize_runtime_and_context",
-        AsyncMock(return_value=(MagicMock(), None)),
+        lambda headers: {"user_principal_id": "mock-user-id"},
     )
     monkeypatch.setattr(
         "src.backend.utils.retrieve_all_agent_tools",
-        MagicMock(return_value=mock_agent_tools),
+        lambda: [{"agent": "test_agent", "function": "test_function"}],
     )
-    monkeypatch.setattr(
-        "src.backend.app.track_event",
-        MagicMock(),
-    )
+
+def test_input_task_invalid_json():
+    """Test the case where the input JSON is invalid."""
+    invalid_json = "Invalid JSON data"
+
+    headers = {"Authorization": "Bearer mock-token"}
+    response = client.post("/input_task", data=invalid_json, headers=headers)
+
+    # Assert response for invalid JSON
+    assert response.status_code == 422
+    assert "detail" in response.json()
+
+def test_input_task_missing_description():
+    """Test the case where the input task description is missing."""
+    input_task = {
+        "session_id": None,
+        "user_id": "mock-user-id",
+    }
+
+    headers = {"Authorization": "Bearer mock-token"}
+    response = client.post("/input_task", json=input_task, headers=headers)
+
+    # Assert response for missing description
+    assert response.status_code == 422
+    assert "detail" in response.json()
+
+def test_input_task_success():
+    """Test the successful creation of an InputTask."""
+    input_task = {
+        "session_id": "test_session_id",
+        "description": "Test Task",
+        "user_id": "mock-user-id",
+    }
 
 def test_basic_endpoint():
     """Test a basic endpoint to ensure the app runs."""
     response = client.get("/")
-    assert response.status_code == 404
+    assert response.status_code == 404  # the root endpoint is not defined
+
+def test_input_task_empty_description():
+    """Tests if /input_task handles an empty description."""
+    empty_task = {"session_id": None, "user_id": "mock-user-id", "description": ""}
+    headers = {"Authorization": "Bearer mock-token"}
+    response = client.post("/input_task", json=empty_task, headers=headers)
+
+    assert response.status_code == 422
+    assert "detail" in response.json()  # Assert error message for missing description 
+
+if __name__ == "__main__":
+    pytest.main()
