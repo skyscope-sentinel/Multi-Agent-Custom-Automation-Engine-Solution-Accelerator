@@ -23,17 +23,12 @@ from src.backend.agents.tech_support import TechSupportAgent, get_tech_support_t
 # from agents.misc import MiscAgent
 from src.backend.config import Config
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
-from src.backend.models.messages import BAgentType, Step
-from collections import defaultdict
-import logging
+from src.backend.models.messages import BAgentType
+# from collections import defaultdict
 
 # Initialize logging
 # from otlp_tracing import configure_oltp_tracing
 
-from src.backend.models.messages import (
-    InputTask,
-    Plan,
-)
 
 logging.basicConfig(level=logging.INFO)
 # tracer = configure_oltp_tracing()
@@ -74,8 +69,6 @@ async def initialize_runtime_and_context(
     Returns:
         Tuple[SingleThreadedAgentRuntime, CosmosBufferedChatCompletionContext]: The runtime and context for the session.
     """
-    global runtime_dict
-    global aoai_model_client
 
     if user_id is None:
         raise ValueError(

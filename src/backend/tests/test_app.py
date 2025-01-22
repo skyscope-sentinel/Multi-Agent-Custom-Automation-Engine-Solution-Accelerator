@@ -1,7 +1,7 @@
 import os
 import sys
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
 
 # Mock Azure dependencies
@@ -10,7 +10,7 @@ sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
 
 # Mock the configure_azure_monitor function
-from azure.monitor.opentelemetry import configure_azure_monitor
+#from azure.monitor.opentelemetry import configure_azure_monitor
 
 configure_azure_monitor = MagicMock()
 # Set up environment variables
@@ -68,13 +68,7 @@ def test_input_task_missing_description():
 
 
 def test_input_task_success():
-    """Test the successful creation of an InputTask."""
-    input_task = {
-        "session_id": "test_session_id",
-        "description": "Test Task",
-        "user_id": "mock-user-id",
-    }
-
+    """Test the successful creation of an InputTask."""  
 
 def test_basic_endpoint():
     """Test a basic endpoint to ensure the app runs."""

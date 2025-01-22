@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 from src.backend.utils import initialize_runtime_and_context, runtime_dict, rai_success
 from uuid import uuid4
 
