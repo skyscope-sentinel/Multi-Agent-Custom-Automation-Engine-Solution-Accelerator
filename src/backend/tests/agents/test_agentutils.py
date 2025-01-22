@@ -1,3 +1,4 @@
+# pylint: disable=import-error, wrong-import-position
 import json
 import os
 import sys
@@ -5,9 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pydantic import ValidationError
 
-from src.backend.agents.agentutils import extract_and_update_transition_states
-from src.backend.models.messages import Step
-# pylint: disable=import-error
+
 # Environment and module setup
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
@@ -19,7 +18,9 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-# Ensure imports are at the top
+
+from src.backend.agents.agentutils import extract_and_update_transition_states
+from src.backend.models.messages import Step
 
 
 @pytest.mark.asyncio
