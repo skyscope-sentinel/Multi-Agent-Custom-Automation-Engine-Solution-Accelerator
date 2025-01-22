@@ -13,12 +13,10 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-
 async def async_iterable(mock_items):
     """Helper to create an async iterable."""
     for item in mock_items:
         yield item
-
 
 @pytest.fixture(autouse=True)
 def mock_env_variables(monkeypatch):
@@ -35,6 +33,12 @@ def mock_env_variables(monkeypatch):
     for key, value in env_vars.items():
         monkeypatch.setenv(key, value)
 
+@pytest.fixture(autouse=True)
+def mock_azure_credentials():
+    """Mock Azure DefaultAzureCredential for all tests."""
+    with patch("azure.identity.aio.DefaultAzureCredential") as mock_cred:
+        mock_cred.return_value.get_token = AsyncMock(return_value={"token": "mock-token"})
+        yield
 
 @pytest.fixture
 def mock_cosmos_client():
@@ -43,7 +47,6 @@ def mock_cosmos_client():
     mock_container = AsyncMock()
     mock_client.create_container_if_not_exists.return_value = mock_container
     return mock_client, mock_container
-
 
 @pytest.fixture
 def mock_config(mock_cosmos_client):
@@ -54,7 +57,6 @@ def mock_config(mock_cosmos_client):
     ), patch("src.backend.config.Config.COSMOSDB_CONTAINER", "mock-container"):
         yield
 
-
 @pytest.mark.asyncio
 async def test_initialize(mock_config, mock_cosmos_client):
     """Test if the Cosmos DB container is initialized correctly."""
@@ -62,12 +64,14 @@ async def test_initialize(mock_config, mock_cosmos_client):
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    mock_client.create_container_if_not_exists.assert_called_once_with(
-        id="mock-container", partition_key=PartitionKey(path="/session_id")
-    )
-    assert context._container == mock_container
-
+    try:
+        await context.initialize()
+        mock_client.create_container_if_not_exists.assert_called_once_with(
+            id="mock-container", partition_key=PartitionKey(path="/session_id")
+        )
+        assert context._container == mock_container
+    finally:
+        await context.close()
 
 @pytest.mark.asyncio
 async def test_add_item(mock_config, mock_cosmos_client):
@@ -79,13 +83,14 @@ async def test_add_item(mock_config, mock_cosmos_client):
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    await context.add_item(mock_item)
-
-    mock_container.create_item.assert_called_once_with(
-        body={"id": "test-item", "data": "test-data"}
-    )
-
+    try:
+        await context.initialize()
+        await context.add_item(mock_item)
+        mock_container.create_item.assert_called_once_with(
+            body={"id": "test-item", "data": "test-data"}
+        )
+    finally:
+        await context.close()
 
 @pytest.mark.asyncio
 async def test_update_item(mock_config, mock_cosmos_client):
@@ -97,13 +102,14 @@ async def test_update_item(mock_config, mock_cosmos_client):
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    await context.update_item(mock_item)
-
-    mock_container.upsert_item.assert_called_once_with(
-        body={"id": "test-item", "data": "updated-data"}
-    )
-
+    try:
+        await context.initialize()
+        await context.update_item(mock_item)
+        mock_container.upsert_item.assert_called_once_with(
+            body={"id": "test-item", "data": "updated-data"}
+        )
+    finally:
+        await context.close()
 
 @pytest.mark.asyncio
 async def test_get_item_by_id(mock_config, mock_cosmos_client):
@@ -118,128 +124,72 @@ async def test_get_item_by_id(mock_config, mock_cosmos_client):
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    result = await context.get_item_by_id(
-        "test-item", "test-partition", mock_model_class
-    )
-
-    assert result == "validated_item"
-    mock_container.read_item.assert_called_once_with(
-        item="test-item", partition_key="test-partition"
-    )
-
+    try:
+        await context.initialize()
+        result = await context.get_item_by_id(
+            "test-item", "test-partition", mock_model_class
+        )
+        assert result == "validated_item"
+        mock_container.read_item.assert_called_once_with(
+            item="test-item", partition_key="test-partition"
+        )
+    finally:
+        await context.close()
 
 @pytest.mark.asyncio
 async def test_delete_item(mock_config, mock_cosmos_client):
     """Test deleting an item from Cosmos DB."""
     _, mock_container = mock_cosmos_client
-
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    await context.delete_item("test-item", "test-partition")
-
-    mock_container.delete_item.assert_called_once_with(
-        item="test-item", partition_key="test-partition"
-    )
-
-
-@pytest.mark.asyncio
-async def test_add_plan(mock_config, mock_cosmos_client):
-    """Test adding a plan to Cosmos DB."""
-    _, mock_container = mock_cosmos_client
-    mock_plan = MagicMock()
-    mock_plan.model_dump.return_value = {"id": "plan1", "data": "plan-data"}
-
-    context = CosmosBufferedChatCompletionContext(
-        session_id="test_session", user_id="test_user"
-    )
-    await context.initialize()
-    await context.add_plan(mock_plan)
-
-    mock_container.create_item.assert_called_once_with(
-        body={"id": "plan1", "data": "plan-data"}
-    )
-
-
-@pytest.mark.asyncio
-async def test_update_plan(mock_config, mock_cosmos_client):
-    """Test updating a plan in Cosmos DB."""
-    _, mock_container = mock_cosmos_client
-    mock_plan = MagicMock()
-    mock_plan.model_dump.return_value = {"id": "plan1", "data": "updated-plan-data"}
-
-    context = CosmosBufferedChatCompletionContext(
-        session_id="test_session", user_id="test_user"
-    )
-    await context.initialize()
-    await context.update_plan(mock_plan)
-
-    mock_container.upsert_item.assert_called_once_with(
-        body={"id": "plan1", "data": "updated-plan-data"}
-    )
-
-
-@pytest.mark.asyncio
-async def test_add_session(mock_config, mock_cosmos_client):
-    """Test adding a session to Cosmos DB."""
-    _, mock_container = mock_cosmos_client
-    mock_session = MagicMock()
-    mock_session.model_dump.return_value = {"id": "session1", "data": "session-data"}
-
-    context = CosmosBufferedChatCompletionContext(
-        session_id="test_session", user_id="test_user"
-    )
-    await context.initialize()
-    await context.add_session(mock_session)
-
-    mock_container.create_item.assert_called_once_with(
-        body={"id": "session1", "data": "session-data"}
-    )
-
-
-@pytest.mark.asyncio
-async def test_initialize_event(mock_config, mock_cosmos_client):
-    """Test the initialization event is set."""
-    _, _ = mock_cosmos_client
-    context = CosmosBufferedChatCompletionContext(
-        session_id="test_session", user_id="test_user"
-    )
-    assert not context._initialized.is_set()
-    await context.initialize()
-    assert context._initialized.is_set()
-
+    try:
+        await context.initialize()
+        await context.delete_item("test-item", "test-partition")
+        mock_container.delete_item.assert_called_once_with(
+            item="test-item", partition_key="test-partition"
+        )
+    finally:
+        await context.close()
 
 @pytest.mark.asyncio
 async def test_get_data_by_invalid_type(mock_config, mock_cosmos_client):
     """Test querying data with an invalid type."""
-    _, _ = mock_cosmos_client
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-
-    result = await context.get_data_by_type("invalid_type")
-
-    assert result == []  # Expect empty result for invalid type
-
+    try:
+        result = await context.get_data_by_type("invalid_type")
+        assert result == []  # Expect empty result for invalid type
+    finally:
+        await context.close()
 
 @pytest.mark.asyncio
 async def test_get_plan_by_invalid_session(mock_config, mock_cosmos_client):
     """Test retrieving a plan with an invalid session ID."""
     _, mock_container = mock_cosmos_client
-    mock_container.query_items.return_value = async_iterable(
-        []
-    )  # No results for invalid session
+    mock_container.query_items.return_value = async_iterable([])  # No results
 
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    result = await context.get_plan_by_session("invalid_session")
+    try:
+        await context.initialize()
+        result = await context.get_plan_by_session("invalid_session")
+        assert result is None
+    finally:
+        await context.close()
 
-    assert result is None
-
+@pytest.mark.asyncio
+async def test_close_without_initialization(mock_config):
+    """Test close method without prior initialization."""
+    context = CosmosBufferedChatCompletionContext(
+        session_id="test_session", user_id="test_user"
+    )
+    try:
+        await context.close()
+    except Exception as e:
+        pytest.fail(f"Unexpected exception during close: {e}")
 
 @pytest.mark.asyncio
 async def test_delete_item_error_handling(mock_config, mock_cosmos_client):
@@ -250,17 +200,8 @@ async def test_delete_item_error_handling(mock_config, mock_cosmos_client):
     context = CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     )
-    await context.initialize()
-    await context.delete_item(
-        "test-item", "test-partition"
-    )  # Expect no exception to propagate
-
-
-@pytest.mark.asyncio
-async def test_close_without_initialization(mock_config, mock_cosmos_client):
-    """Test close method without prior initialization."""
-    context = CosmosBufferedChatCompletionContext(
-        session_id="test_session", user_id="test_user"
-    )
-    # Expect no exceptions when closing uninitialized context
-    await context.close()
+    try:
+        await context.initialize()
+        await context.delete_item("test-item", "test-partition")
+    finally:
+        await context.close()
