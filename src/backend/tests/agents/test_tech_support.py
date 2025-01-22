@@ -522,3 +522,4 @@ def test_get_tech_support_tools():
     assert len(tools) > 40  # Ensure all tools are included
     assert all(isinstance(tool, FunctionTool) for tool in tools)
     
+
