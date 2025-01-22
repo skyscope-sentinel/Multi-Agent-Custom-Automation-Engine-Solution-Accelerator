@@ -378,7 +378,8 @@ async def test_monitor_system_performance():
     assert "System Performance Monitored" in result
 
 
-def test_get_tech_support_tools():
+@pytest.mark.asyncio
+async def test_get_tech_support_tools():
     tools = get_tech_support_tools()
     assert isinstance(tools, list)
     assert len(tools) > 40  # Ensure all tools are included
