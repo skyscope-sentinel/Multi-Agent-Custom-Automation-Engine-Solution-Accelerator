@@ -18,9 +18,9 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-
-from src.backend.agents.agentutils import extract_and_update_transition_states #noqa: E402
-from src.backend.models.messages import Step #noqa: E402
+# noqa: F401 is to ignore unused import warnings (if any)
+from src.backend.agents.agentutils import extract_and_update_transition_states  # noqa: F401, C0413
+from src.backend.models.messages import Step  # noqa: F401, C0413
 
 
 @pytest.mark.asyncio
