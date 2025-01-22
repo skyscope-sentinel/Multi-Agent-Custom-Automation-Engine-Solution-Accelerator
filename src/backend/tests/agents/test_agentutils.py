@@ -1,10 +1,13 @@
-import pytest
-import sys
 import os
-import json  # Fix for missing import
+import sys
+import json
+import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import ValidationError
+
+# Mocking modules before importing them
 sys.modules["azure.monitor.events.extension"] = MagicMock()
+
 # Set environment variables to mock Config dependencies before any import
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
@@ -13,8 +16,9 @@ os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-from src.backend.models.messages import Step
-from src.backend.agents.agentutils import extract_and_update_transition_states
+
+from src.backend.models.messages import Step  # Ensure used imports remain
+from src.backend.agents.agentutils import extract_and_update_transition_states  # Ensure used imports remain
 
 @pytest.mark.asyncio
 async def test_extract_and_update_transition_states_invalid_response():
