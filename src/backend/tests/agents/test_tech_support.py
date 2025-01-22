@@ -1,12 +1,13 @@
 import os
 import sys
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 from autogen_core.components.tools import FunctionTool
 
+# Mock the azure.monitor.events.extension module globally
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
-# Set environment variables to mock Config dependencies before any import
+# Set environment variables to mock Config dependencies
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
@@ -62,7 +63,6 @@ from src.backend.agents.tech_support import (
     monitor_system_performance,
     get_tech_support_tools,
 )
-
 
 @pytest.mark.asyncio
 async def test_collaborate_with_code_deployment():

@@ -10,9 +10,8 @@ sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
 
 # Mock the configure_azure_monitor function
-#from azure.monitor.opentelemetry import configure_azure_monitor
-
 configure_azure_monitor = MagicMock()
+
 # Set up environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
@@ -68,7 +67,8 @@ def test_input_task_missing_description():
 
 
 def test_input_task_success():
-    """Test the successful creation of an InputTask."""  
+    """Test the successful creation of an InputTask."""
+
 
 def test_basic_endpoint():
     """Test a basic endpoint to ensure the app runs."""
