@@ -1,16 +1,13 @@
 import os
 import sys
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
 # Mock Azure dependencies
 sys.modules["azure.monitor"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
-
-# Mock the configure_azure_monitor function
-configure_azure_monitor = MagicMock()
 
 # Set up environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -19,8 +16,9 @@ os.environ["COSMOSDB_DATABASE"] = "mock-database"
 os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
 
-# Import FastAPI app
-from src.backend.app import app
+# Mock telemetry initialization in the app
+with patch("src.backend.app.configure_azure_monitor", MagicMock()):
+    from src.backend.app import app
 
 # Initialize FastAPI test client
 client = TestClient(app)

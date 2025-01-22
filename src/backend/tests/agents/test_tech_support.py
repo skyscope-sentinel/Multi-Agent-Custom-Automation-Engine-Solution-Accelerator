@@ -64,6 +64,7 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
+
 @pytest.mark.asyncio
 async def test_collaborate_with_code_deployment():
     result = await collaborate_with_code_deployment("AI Deployment Project")
