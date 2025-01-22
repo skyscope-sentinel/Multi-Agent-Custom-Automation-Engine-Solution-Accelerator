@@ -65,13 +65,11 @@ from src.backend.agents.tech_support import (
     get_tech_support_tools,
 )
 
-
 @pytest.mark.asyncio
 async def test_collaborate_with_code_deployment():
     result = await collaborate_with_code_deployment("AI Deployment Project")
     assert "Code Deployment Collaboration" in result
     assert "AI Deployment Project" in result
-
 
 @pytest.mark.asyncio
 async def test_send_welcome_email():
@@ -80,7 +78,6 @@ async def test_send_welcome_email():
     assert "John Doe" in result
     assert "john.doe@example.com" in result
 
-
 @pytest.mark.asyncio
 async def test_set_up_office_365_account():
     result = await set_up_office_365_account("Jane Smith", "jane.smith@example.com")
@@ -88,13 +85,11 @@ async def test_set_up_office_365_account():
     assert "Jane Smith" in result
     assert "jane.smith@example.com" in result
 
-
 @pytest.mark.asyncio
 async def test_configure_laptop():
     result = await configure_laptop("John Doe", "Dell XPS 15")
     assert "Laptop Configuration" in result
     assert "Dell XPS 15" in result
-
 
 @pytest.mark.asyncio
 async def test_reset_password():
@@ -102,13 +97,11 @@ async def test_reset_password():
     assert "Password Reset" in result
     assert "John Doe" in result
 
-
 @pytest.mark.asyncio
 async def test_setup_vpn_access():
     result = await setup_vpn_access("John Doe")
     assert "VPN Access Setup" in result
     assert "John Doe" in result
-
 
 @pytest.mark.asyncio
 async def test_troubleshoot_network_issue():
@@ -116,13 +109,11 @@ async def test_troubleshoot_network_issue():
     assert "Network Issue Resolved" in result
     assert "Slow internet" in result
 
-
 @pytest.mark.asyncio
 async def test_install_software():
     result = await install_software("Jane Doe", "Adobe Photoshop")
     assert "Software Installation" in result
     assert "Adobe Photoshop" in result
-
 
 @pytest.mark.asyncio
 async def test_update_software():
@@ -130,13 +121,11 @@ async def test_update_software():
     assert "Software Update" in result
     assert "Microsoft Office" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_data_backup():
     result = await manage_data_backup("Jane Smith")
     assert "Data Backup Managed" in result
     assert "Jane Smith" in result
-
 
 @pytest.mark.asyncio
 async def test_handle_cybersecurity_incident():
@@ -144,13 +133,11 @@ async def test_handle_cybersecurity_incident():
     assert "Cybersecurity Incident Handled" in result
     assert "Phishing email detected" in result
 
-
 @pytest.mark.asyncio
 async def test_assist_procurement_with_tech_equipment():
     result = await assist_procurement_with_tech_equipment("Dell Workstation specs")
     assert "Technical Specifications Provided" in result
     assert "Dell Workstation specs" in result
-
 
 @pytest.mark.asyncio
 async def test_provide_tech_support_for_marketing():
@@ -158,13 +145,11 @@ async def test_provide_tech_support_for_marketing():
     assert "Tech Support for Marketing Campaign" in result
     assert "Holiday Campaign" in result
 
-
 @pytest.mark.asyncio
 async def test_assist_product_launch():
     result = await assist_product_launch("Smartphone X")
     assert "Tech Support for Product Launch" in result
     assert "Smartphone X" in result
-
 
 @pytest.mark.asyncio
 async def test_implement_it_policy():
@@ -172,20 +157,17 @@ async def test_implement_it_policy():
     assert "IT Policy Implemented" in result
     assert "Data Retention Policy" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_cloud_service():
     result = await manage_cloud_service("AWS S3")
     assert "Cloud Service Managed" in result
     assert "AWS S3" in result
 
-
 @pytest.mark.asyncio
 async def test_configure_server():
     result = await configure_server("Database Server")
     assert "Server Configuration" in result
     assert "Database Server" in result
-
 
 @pytest.mark.asyncio
 async def test_grant_database_access():
@@ -194,14 +176,12 @@ async def test_grant_database_access():
     assert "Alice" in result
     assert "SalesDB" in result
 
-
 @pytest.mark.asyncio
 async def test_provide_tech_training():
     result = await provide_tech_training("Bob", "VPN Tool")
     assert "Tech Training Provided" in result
     assert "Bob" in result
     assert "VPN Tool" in result
-
 
 @pytest.mark.asyncio
 async def test_configure_printer():
@@ -210,14 +190,12 @@ async def test_configure_printer():
     assert "Charlie" in result
     assert "HP LaserJet 123" in result
 
-
 @pytest.mark.asyncio
 async def test_set_up_email_signature():
     result = await set_up_email_signature("Derek", "Best regards, Derek")
     assert "Email Signature Setup" in result
     assert "Derek" in result
     assert "Best regards, Derek" in result
-
 
 @pytest.mark.asyncio
 async def test_configure_mobile_device():
@@ -226,13 +204,11 @@ async def test_configure_mobile_device():
     assert "Emily" in result
     assert "iPhone 13" in result
 
-
 @pytest.mark.asyncio
 async def test_set_up_remote_desktop():
     result = await set_up_remote_desktop("Frank")
     assert "Remote Desktop Setup" in result
     assert "Frank" in result
-
 
 @pytest.mark.asyncio
 async def test_troubleshoot_hardware_issue():
@@ -240,12 +216,10 @@ async def test_troubleshoot_hardware_issue():
     assert "Hardware Issue Resolved" in result
     assert "Laptop overheating" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_network_security():
     result = await manage_network_security()
     assert "Network Security Managed" in result
-
 
 @pytest.mark.asyncio
 async def test_update_firmware():
@@ -254,7 +228,6 @@ async def test_update_firmware():
     assert "Router X" in result
     assert "v1.2.3" in result
 
-
 @pytest.mark.asyncio
 async def test_assist_with_video_conferencing_setup():
     result = await assist_with_video_conferencing_setup("Grace", "Zoom")
@@ -262,12 +235,10 @@ async def test_assist_with_video_conferencing_setup():
     assert "Grace" in result
     assert "Zoom" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_it_inventory():
     result = await manage_it_inventory()
     assert "IT Inventory Managed" in result
-
 
 @pytest.mark.asyncio
 async def test_configure_firewall_rules():
@@ -275,20 +246,17 @@ async def test_configure_firewall_rules():
     assert "Firewall Rules Configured" in result
     assert "Allow traffic on port 8080" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_virtual_machines():
     result = await manage_virtual_machines("VM: Ubuntu Server")
     assert "Virtual Machines Managed" in result
     assert "VM: Ubuntu Server" in result
 
-
 @pytest.mark.asyncio
 async def test_provide_tech_support_for_event():
     result = await provide_tech_support_for_event("Annual Tech Summit")
     assert "Tech Support for Event" in result
     assert "Annual Tech Summit" in result
-
 
 @pytest.mark.asyncio
 async def test_configure_network_storage():
@@ -297,13 +265,11 @@ async def test_configure_network_storage():
     assert "John Doe" in result
     assert "500GB NAS" in result
 
-
 @pytest.mark.asyncio
 async def test_set_up_two_factor_authentication():
     result = await set_up_two_factor_authentication("Jane Smith")
     assert "Two-Factor Authentication Setup" in result
     assert "Jane Smith" in result
-
 
 @pytest.mark.asyncio
 async def test_troubleshoot_email_issue():
@@ -312,20 +278,17 @@ async def test_troubleshoot_email_issue():
     assert "Cannot send emails" in result
     assert "Alice" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_it_helpdesk_tickets():
     result = await manage_it_helpdesk_tickets("Ticket #123: Password reset")
     assert "Helpdesk Tickets Managed" in result
     assert "Password reset" in result
 
-
 @pytest.mark.asyncio
 async def test_handle_software_bug_report():
     result = await handle_software_bug_report("Critical bug in payroll module")
     assert "Software Bug Report Handled" in result
     assert "Critical bug in payroll module" in result
-
 
 @pytest.mark.asyncio
 async def test_assist_with_data_recovery():
@@ -334,13 +297,11 @@ async def test_assist_with_data_recovery():
     assert "Jane Doe" in result
     assert "Recover deleted files" in result
 
-
 @pytest.mark.asyncio
 async def test_manage_system_updates():
     result = await manage_system_updates("Patch CVE-2023-1234")
     assert "System Updates Managed" in result
     assert "Patch CVE-2023-1234" in result
-
 
 @pytest.mark.asyncio
 async def test_configure_digital_signatures():
@@ -349,13 +310,11 @@ async def test_configure_digital_signatures():
     assert "John Doe" in result
     assert "Company Approved Signature" in result
 
-
 @pytest.mark.asyncio
 async def test_provide_remote_tech_support():
     result = await provide_remote_tech_support("Mark")
     assert "Remote Tech Support Provided" in result
     assert "Mark" in result
-
 
 @pytest.mark.asyncio
 async def test_manage_network_bandwidth():
@@ -363,19 +322,16 @@ async def test_manage_network_bandwidth():
     assert "Network Bandwidth Managed" in result
     assert "Allocate more bandwidth for video calls" in result
 
-
 @pytest.mark.asyncio
 async def test_assist_with_tech_documentation():
     result = await assist_with_tech_documentation("Documentation for VPN setup")
     assert "Technical Documentation Created" in result
     assert "VPN setup" in result
 
-
 @pytest.mark.asyncio
 async def test_monitor_system_performance():
     result = await monitor_system_performance()
     assert "System Performance Monitored" in result
-
 
 def test_get_tech_support_tools():
     tools = get_tech_support_tools()
