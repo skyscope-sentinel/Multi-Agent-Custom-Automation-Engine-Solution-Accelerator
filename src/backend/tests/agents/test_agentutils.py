@@ -4,7 +4,8 @@ import os
 import json  # Fix for missing import
 from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import ValidationError
-sys.modules['azure.monitor.events.extension'] = MagicMock()
+
+sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 # Set environment variables to mock Config dependencies before any import
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -15,12 +16,13 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-from autogen_core.components.models import AssistantMessage, AzureOpenAIChatCompletionClient
+from autogen_core.components.models import (
+    AssistantMessage,
+    AzureOpenAIChatCompletionClient,
+)
 from src.backend.models.messages import Step
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from src.backend.agents.agentutils import extract_and_update_transition_states
-
-
 
 
 @pytest.mark.asyncio
@@ -41,8 +43,11 @@ async def test_extract_and_update_transition_states_invalid_response():
     cosmos_mock = MagicMock()
 
     model_client.create.return_value = MagicMock(content="invalid_json")
-    
-    with patch("src.backend.context.cosmos_memory.CosmosBufferedChatCompletionContext", cosmos_mock):
+
+    with patch(
+        "src.backend.context.cosmos_memory.CosmosBufferedChatCompletionContext",
+        cosmos_mock,
+    ):
         with pytest.raises(json.JSONDecodeError):
             await extract_and_update_transition_states(
                 step=step,
@@ -53,6 +58,7 @@ async def test_extract_and_update_transition_states_invalid_response():
             )
 
     cosmos_mock.update_step.assert_not_called()
+
 
 @pytest.mark.asyncio
 async def test_extract_and_update_transition_states_validation_error():
@@ -71,12 +77,15 @@ async def test_extract_and_update_transition_states_validation_error():
     model_client = AsyncMock()
     cosmos_mock = MagicMock()
 
-    invalid_response = {"identifiedTargetState": "state1"}  # Missing 'identifiedTargetTransition'
-    model_client.create.return_value = MagicMock(
-        content=json.dumps(invalid_response)
-    )
-    
-    with patch("src.backend.context.cosmos_memory.CosmosBufferedChatCompletionContext", cosmos_mock):
+    invalid_response = {
+        "identifiedTargetState": "state1"
+    }  # Missing 'identifiedTargetTransition'
+    model_client.create.return_value = MagicMock(content=json.dumps(invalid_response))
+
+    with patch(
+        "src.backend.context.cosmos_memory.CosmosBufferedChatCompletionContext",
+        cosmos_mock,
+    ):
         with pytest.raises(ValidationError):
             await extract_and_update_transition_states(
                 step=step,
@@ -87,6 +96,7 @@ async def test_extract_and_update_transition_states_validation_error():
             )
 
     cosmos_mock.update_step.assert_not_called()
+
 
 def test_step_initialization():
     """Test Step initialization with valid data."""
@@ -109,6 +119,7 @@ def test_step_initialization():
     assert step.agent_reply == "test_reply"
     assert step.status == "planned"
     assert step.human_approval_status == "requested"
+
 
 def test_step_missing_required_fields():
     """Test Step initialization with missing required fields."""

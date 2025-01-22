@@ -4,7 +4,8 @@ import os
 import json  # Fix for missing import
 from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import ValidationError
-sys.modules['azure.monitor.events.extension'] = MagicMock()
+
+sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 # Set environment variables to mock Config dependencies before any import
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -26,7 +27,6 @@ from src.backend.agents.base_agent import BaseAgent
 from src.backend.agents.generic import get_generic_tools, GenericAgent, dummy_function
 
 
-
 class TestGenericAgent(unittest.TestCase):
     def setUp(self):
         self.mock_model_client = MagicMock(spec=AzureOpenAIChatCompletionClient)
@@ -36,7 +36,7 @@ class TestGenericAgent(unittest.TestCase):
         self.mock_tools = get_generic_tools()
         self.mock_agent_id = MagicMock(spec=AgentId)
 
- 
+
 class TestDummyFunction(unittest.IsolatedAsyncioTestCase):
     async def test_dummy_function(self):
         result = await dummy_function()

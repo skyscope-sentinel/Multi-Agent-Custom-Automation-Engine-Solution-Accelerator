@@ -157,9 +157,11 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     track_event(
         "InputTaskProcessed",
         {
-            "status": f"Plan created:\n {plan.summary}"
-            if plan.id
-            else "Error occurred: Plan ID is empty",
+            "status": (
+                f"Plan created:\n {plan.summary}"
+                if plan.id
+                else "Error occurred: Plan ID is empty"
+            ),
             "session_id": input_task.session_id,
             "plan_id": plan.id,
             "description": input_task.description,
@@ -167,9 +169,11 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     )
 
     return {
-        "status": f"Plan created:\n {plan.summary}"
-        if plan.id
-        else "Error occurred: Plan ID is empty",
+        "status": (
+            f"Plan created:\n {plan.summary}"
+            if plan.id
+            else "Error occurred: Plan ID is empty"
+        ),
         "session_id": input_task.session_id,
         "plan_id": plan.id,
         "description": input_task.description,
