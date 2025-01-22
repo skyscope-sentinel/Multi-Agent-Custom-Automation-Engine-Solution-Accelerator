@@ -38,3 +38,4 @@ def test_configure_oltp_tracing(
     mock_trace.set_tracer_provider.assert_called_once_with(mock_tracer_provider_instance)
 
     assert tracer_provider == mock_tracer_provider_instance
+    
