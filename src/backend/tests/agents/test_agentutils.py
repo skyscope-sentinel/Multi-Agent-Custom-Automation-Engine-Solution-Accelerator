@@ -1,4 +1,4 @@
-# pylint: disable=import-error, wrong-import-position
+# pylint: disable=import-error, wrong-import-position, missing-module-docstring
 import json
 import os
 import sys
@@ -19,8 +19,8 @@ os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
 
-from src.backend.agents.agentutils import extract_and_update_transition_states
-from src.backend.models.messages import Step
+from src.backend.agents.agentutils import extract_and_update_transition_states #noqa: E402
+from src.backend.models.messages import Step #noqa: E402
 
 
 @pytest.mark.asyncio
