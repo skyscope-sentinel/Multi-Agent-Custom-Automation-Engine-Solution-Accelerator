@@ -4,9 +4,7 @@ import os
 import json  # Fix for missing import
 from unittest.mock import AsyncMock, MagicMock, patch
 from pydantic import ValidationError
-
 sys.modules["azure.monitor.events.extension"] = MagicMock()
-
 # Set environment variables to mock Config dependencies before any import
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
@@ -15,15 +13,8 @@ os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-
-from autogen_core.components.models import (
-    AssistantMessage,
-    AzureOpenAIChatCompletionClient,
-)
 from src.backend.models.messages import Step
-from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from src.backend.agents.agentutils import extract_and_update_transition_states
-
 
 @pytest.mark.asyncio
 async def test_extract_and_update_transition_states_invalid_response():

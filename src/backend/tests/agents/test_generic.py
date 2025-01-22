@@ -1,13 +1,8 @@
-import pytest
 import sys
 import os
-import json  # Fix for missing import
-from unittest.mock import AsyncMock, MagicMock, patch
-from pydantic import ValidationError
-
+from unittest.mock import MagicMock
+import unittest
 sys.modules["azure.monitor.events.extension"] = MagicMock()
-
-# Set environment variables to mock Config dependencies before any import
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
@@ -15,15 +10,9 @@ os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-import unittest
-from unittest.mock import MagicMock
-from typing import List
-
 from autogen_core.components.models import AzureOpenAIChatCompletionClient
-from autogen_core.components.tools import Tool
 from autogen_core.base import AgentId
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
-from src.backend.agents.base_agent import BaseAgent
 from src.backend.agents.generic import get_generic_tools, GenericAgent, dummy_function
 
 
