@@ -64,6 +64,7 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
+
 # Mock Azure DefaultAzureCredential
 @pytest.fixture(autouse=True)
 def mock_azure_credentials():
