@@ -13,6 +13,7 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment"
 os.environ["COSMOSDB_DATABASE"] = "mock_database"
 os.environ["COSMOSDB_CONTAINER"] = "mock_container"
 
+
 # Test cases with loop_scope="session" for async functions
 @pytest.mark.asyncio(loop_scope="session")
 @patch("src.backend.utils.SingleThreadedAgentRuntime")
