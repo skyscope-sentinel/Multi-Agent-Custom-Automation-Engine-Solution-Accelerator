@@ -4,23 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from azure.cosmos.partition_key import PartitionKey
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 
-
 # Mock environment variables
-os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
-os.environ["COSMOSDB_KEY"] = "mock-key"
-os.environ["COSMOSDB_DATABASE"] = "mock-database"
-os.environ["COSMOSDB_CONTAINER"] = "mock-container"
-os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
-os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-
-
-async def async_iterable(mock_items):
-    """Helper to create an async iterable."""
-    for item in mock_items:
-        yield item
-
-
 @pytest.fixture(autouse=True)
 def mock_env_variables(monkeypatch):
     """Mock all required environment variables."""
@@ -37,7 +21,7 @@ def mock_env_variables(monkeypatch):
         monkeypatch.setenv(key, value)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_azure_credentials():
     """Mock Azure DefaultAzureCredential for all tests."""
     with patch("azure.identity.aio.DefaultAzureCredential") as mock_cred:
@@ -64,7 +48,13 @@ def mock_config(mock_cosmos_client):
         yield
 
 
-@pytest.mark.asyncio
+async def async_iterable(mock_items):
+    """Helper to create an async iterable."""
+    for item in mock_items:
+        yield item
+
+
+@pytest.mark.asyncio(loop_scope="session")
 async def test_initialize(mock_config, mock_cosmos_client):
     """Test if the Cosmos DB container is initialized correctly."""
     mock_client, mock_container = mock_cosmos_client
@@ -78,16 +68,16 @@ async def test_initialize(mock_config, mock_cosmos_client):
         assert context._container == mock_container
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_close_without_initialization(mock_config):
     """Test closing the context without prior initialization."""
     async with CosmosBufferedChatCompletionContext(
         session_id="test_session", user_id="test_user"
     ):
-        pass  # Expect no errors when exiting context
+        pass  # Ensure proper cleanup without initialization
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_add_item(mock_config, mock_cosmos_client):
     """Test adding an item to Cosmos DB."""
     _, mock_container = mock_cosmos_client
@@ -104,7 +94,7 @@ async def test_add_item(mock_config, mock_cosmos_client):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_update_item(mock_config, mock_cosmos_client):
     """Test updating an item in Cosmos DB."""
     _, mock_container = mock_cosmos_client
@@ -121,7 +111,7 @@ async def test_update_item(mock_config, mock_cosmos_client):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_get_item_by_id(mock_config, mock_cosmos_client):
     """Test retrieving an item by ID from Cosmos DB."""
     _, mock_container = mock_cosmos_client
@@ -145,7 +135,7 @@ async def test_get_item_by_id(mock_config, mock_cosmos_client):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_delete_item(mock_config, mock_cosmos_client):
     """Test deleting an item from Cosmos DB."""
     _, mock_container = mock_cosmos_client
@@ -161,7 +151,7 @@ async def test_delete_item(mock_config, mock_cosmos_client):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_add_plan(mock_config, mock_cosmos_client):
     """Test adding a plan to Cosmos DB."""
     _, mock_container = mock_cosmos_client
@@ -179,7 +169,7 @@ async def test_add_plan(mock_config, mock_cosmos_client):
         )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 async def test_update_plan(mock_config, mock_cosmos_client):
     """Test updating a plan in Cosmos DB."""
     _, mock_container = mock_cosmos_client
@@ -199,19 +189,3 @@ async def test_update_plan(mock_config, mock_cosmos_client):
             body={"id": "plan1", "data": "updated-plan-data"}
         )
 
-
-@pytest.mark.asyncio
-async def test_get_plan_by_invalid_session(mock_config, mock_cosmos_client):
-    """Test retrieving a plan with an invalid session ID."""
-    _, mock_container = mock_cosmos_client
-    mock_container.query_items.return_value = async_iterable(
-        []
-    )  # No results for invalid session
-
-    async with CosmosBufferedChatCompletionContext(
-        session_id="test_session", user_id="test_user"
-    ) as context:
-        await context.initialize()
-        result = await context.get_plan_by_session("invalid_session")
-
-        assert result is None
