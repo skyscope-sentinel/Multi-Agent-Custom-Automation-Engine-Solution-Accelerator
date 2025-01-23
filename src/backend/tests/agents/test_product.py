@@ -3,18 +3,6 @@ import os
 import sys
 import pytest
 from unittest.mock import MagicMock
-
-# Mock modules and environment variables
-sys.modules["azure.monitor.events.extension"] = MagicMock()
-
-os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
-os.environ["COSMOSDB_KEY"] = "mock-key"
-os.environ["COSMOSDB_DATABASE"] = "mock-database"
-os.environ["COSMOSDB_CONTAINER"] = "mock-container"
-os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
-os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-
 # Import the required functions for testing
 from src.backend.agents.product import (
     add_mobile_extras_pack,
@@ -39,6 +27,18 @@ from src.backend.agents.product import (
     track_product_shipment,
     evaluate_product_performance,
 )
+
+# Mock modules and environment variables
+sys.modules["azure.monitor.events.extension"] = MagicMock()
+
+os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
+os.environ["COSMOSDB_KEY"] = "mock-key"
+os.environ["COSMOSDB_DATABASE"] = "mock-database"
+os.environ["COSMOSDB_CONTAINER"] = "mock-container"
+os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
+os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
+os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
+
 
 # Test cases for existing functions
 @pytest.mark.asyncio
