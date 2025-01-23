@@ -1,8 +1,8 @@
-import os
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from azure.cosmos.partition_key import PartitionKey
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
+
 
 # Mock environment variables
 @pytest.fixture(autouse=True)
@@ -188,4 +188,3 @@ async def test_update_plan(mock_config, mock_cosmos_client):
         mock_container.upsert_item.assert_called_once_with(
             body={"id": "plan1", "data": "updated-plan-data"}
         )
-

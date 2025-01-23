@@ -190,6 +190,7 @@ async def test_evaluate_product_performance():
     assert "Performance of" in result
     assert "evaluated based on" in result
 
+
 # Additional Coverage Test
 @pytest.mark.asyncio
 async def test_manage_supply_chain_edge_case():
@@ -197,11 +198,13 @@ async def test_manage_supply_chain_edge_case():
     assert "Supply chain for" in result
     assert "New Supplier" in result
 
+
 @pytest.mark.asyncio
 async def test_optimize_product_page_with_special_chars():
     result = await optimize_product_page("Product A", "Optimize SEO & Speed 🚀")
     assert "Product page for" in result
     assert "Optimize SEO & Speed 🚀" in result
+
 
 # Tests with valid inputs for uncovered functions
 @pytest.mark.asyncio
@@ -234,6 +237,7 @@ async def test_update_inventory_with_zero_quantity():
     assert "Product A" in result
     assert "0" in result
 
+
 @pytest.mark.asyncio
 async def test_set_reorder_level_with_large_value():
     result = await set_reorder_level("Product B", 100000)
@@ -241,11 +245,13 @@ async def test_set_reorder_level_with_large_value():
     assert "Product B" in result
     assert "100000" in result
 
+
 @pytest.mark.asyncio
 async def test_analyze_sales_data_with_long_period():
     result = await analyze_sales_data("Product C", "Last 5 Years")
     assert "Sales data for" in result
     assert "Last 5 Years" in result
+
 
 # Test `update_inventory` with negative quantity (boundary case)
 @pytest.mark.asyncio
@@ -255,12 +261,14 @@ async def test_update_inventory_with_negative_quantity():
     assert "Product D" in result
     assert "-10" in result
 
+
 # Test `update_product_price` with maximum valid price
 @pytest.mark.asyncio
 async def test_update_product_price_maximum():
     result = await update_product_price("Product I", 999999.99)
     assert "Price for" in result
     assert "$999999.99" in result
+
 
 # Test `add_mobile_extras_pack` with a very long pack name
 @pytest.mark.asyncio
@@ -270,11 +278,13 @@ async def test_add_mobile_extras_pack_long_name():
     assert long_pack_name in result
     assert "2025-12-31" in result
 
+
 # Test `schedule_product_launch` with invalid date format
 @pytest.mark.asyncio
 async def test_schedule_product_launch_invalid_date():
     result = await schedule_product_launch("Product J", "31-12-2025")
     assert "launch scheduled on **31-12-2025**" in result
+
 
 # Test `generate_product_report` with no report type
 @pytest.mark.asyncio
@@ -282,11 +292,13 @@ async def test_generate_product_report_no_type():
     result = await generate_product_report("Product K", "")
     assert "report for **'Product K'** generated." in result
 
+
 # Test `forecast_product_demand` with extremely large period
 @pytest.mark.asyncio
 async def test_forecast_product_demand_large_period():
     result = await forecast_product_demand("Product L", "Next 100 Years")
     assert "Demand for **'Product L'** forecasted for **Next 100 Years**." in result
+
 
 # Test `evaluate_product_performance` with missing performance metrics
 @pytest.mark.asyncio
@@ -294,11 +306,13 @@ async def test_evaluate_product_performance_no_metrics():
     result = await evaluate_product_performance("Product M", "")
     assert "Performance of **'Product M'** evaluated" in result
 
+
 # Test `set_reorder_level` with zero value
 @pytest.mark.asyncio
 async def test_set_reorder_level_zero():
     result = await set_reorder_level("Product N", 0)
     assert "Reorder level for **'Product N'** set to **0** units." in result
+
 
 # Test `update_inventory` with very large quantity
 @pytest.mark.asyncio
@@ -306,11 +320,13 @@ async def test_update_inventory_large_quantity():
     result = await update_inventory("Product O", 100000000)
     assert "Inventory for **'Product O'** updated by **100000000** units." in result
 
+
 # Test `check_inventory` with product name containing special characters
 @pytest.mark.asyncio
 async def test_check_inventory_special_name():
     result = await check_inventory("@Product#1!")
     assert "Inventory status for **'@Product#1!'** checked." in result
+
 
 # Test `handle_product_recall` with empty reason
 @pytest.mark.asyncio
@@ -318,11 +334,13 @@ async def test_handle_product_recall_no_reason():
     result = await handle_product_recall("Product P", "")
     assert "Product recall for **'Product P'** initiated due to:" in result
 
+
 # Test `manage_supply_chain` with empty supplier name
 @pytest.mark.asyncio
 async def test_manage_supply_chain_empty_supplier():
     result = await manage_supply_chain("Product Q", "")
     assert "Supply chain for **'Product Q'** managed with supplier" in result
+
 
 # Test `analyze_sales_data` with an invalid time period
 @pytest.mark.asyncio
@@ -330,24 +348,28 @@ async def test_analyze_sales_data_invalid_period():
     result = await analyze_sales_data("Product R", "InvalidPeriod")
     assert "Sales data for **'Product R'** over **InvalidPeriod** analyzed." in result    
 
+
 # Test `update_product_price` with zero price
 @pytest.mark.asyncio
 async def test_update_product_price_zero():
     result = await update_product_price("Product S", 0.0)
     assert "Price for **'Product S'** updated to **$0.00**." in result
 
+
 # Test `monitor_market_trends` with no trends data available
 @pytest.mark.asyncio
 async def test_monitor_market_trends_no_data():
     result = await monitor_market_trends()
     assert "Market trends monitored and data updated." in result
-    
+
+
 # Test `generate_product_report` with special characters in report type
 @pytest.mark.asyncio
 async def test_generate_product_report_special_type():
     result = await generate_product_report("Product U", "Sales/Performance")
     assert "report for **'Product U'** generated." in result
     assert "Sales/Performance" in result
+
 
 # Test `evaluate_product_performance` with multiple metrics
 @pytest.mark.asyncio
@@ -356,11 +378,13 @@ async def test_evaluate_product_performance_multiple_metrics():
     assert "Performance of **'Product V'** evaluated" in result
     assert "Customer reviews, sales, and returns" in result
 
+
 # Test `schedule_product_launch` with no product name
 @pytest.mark.asyncio
 async def test_schedule_product_launch_no_name():
     result = await schedule_product_launch("", "2025-12-01")
     assert "launch scheduled on **2025-12-01**" in result
+
 
 # Test `set_product_discount` with an unusually high discount
 @pytest.mark.asyncio
@@ -369,11 +393,13 @@ async def test_set_product_discount_high_value():
     assert "Discount for **'Product X'**" in result
     assert "95.0%" in result
 
+
 # Test `monitor_market_trends` for a specific market
 @pytest.mark.asyncio
 async def test_monitor_market_trends_specific_market():
     result = await monitor_market_trends()
     assert "Market trends monitored and data updated." in result
+
 
 # Test `provide_product_recommendations` with multiple preferences
 @pytest.mark.asyncio
@@ -381,6 +407,7 @@ async def test_provide_product_recommendations_multiple_preferences():
     result = await provide_product_recommendations("High Performance, Affordability, Durability")
     assert "Product recommendations based on preferences" in result
     assert "High Performance, Affordability, Durability" in result
+
 
 # Test `handle_product_complaints` with extensive complaint details
 @pytest.mark.asyncio
@@ -392,11 +419,13 @@ async def test_handle_product_complaints_detailed():
     assert "Complaint for **'Product Y'**" in result
     assert detailed_complaint in result
 
+
 # Test `update_product_price` with a very low price
 @pytest.mark.asyncio
 async def test_update_product_price_low_value():
     result = await update_product_price("Product Z", 0.01)
     assert "Price for **'Product Z'** updated to **$0.01**." in result
+
 
 # Test `develop_new_product_ideas` with highly detailed input
 @pytest.mark.asyncio
@@ -413,11 +442,13 @@ async def test_forecast_product_demand_unusual():
     result = await forecast_product_demand("Product AA", "Next 1000 Days")
     assert "Demand for **'Product AA'** forecasted for **Next 1000 Days**." in result
 
+
 # Test `set_reorder_level` with extremely high value
 @pytest.mark.asyncio
 async def test_set_reorder_level_high():
     result = await set_reorder_level("Product AB", 10000000)
     assert "Reorder level for **'Product AB'** set to **10000000** units." in result
+
 
 # Test `update_inventory` with fractional quantity
 @pytest.mark.asyncio
@@ -425,11 +456,13 @@ async def test_update_inventory_fractional_quantity():
     result = await update_inventory("Product AD", 5.5)
     assert "Inventory for **'Product AD'** updated by **5.5** units." in result
 
+
 # Test `analyze_sales_data` with unusual product name
 @pytest.mark.asyncio
 async def test_analyze_sales_data_unusual_name():
     result = await analyze_sales_data("💡UniqueProduct✨", "Last Month")
     assert "Sales data for **'💡UniqueProduct✨'**" in result
+
 
 # Test `generate_product_report` with detailed report type
 @pytest.mark.asyncio
@@ -438,6 +471,7 @@ async def test_generate_product_report_detailed_type():
     result = await generate_product_report("Product AE", detailed_type)
     assert "report for **'Product AE'** generated" in result
     assert detailed_type in result
+
 
 # Test `update_product_price` with a very high precision value
 @pytest.mark.asyncio
