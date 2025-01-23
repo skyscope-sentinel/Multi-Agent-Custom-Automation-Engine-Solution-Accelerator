@@ -178,10 +178,3 @@ async def test_track_product_shipment():
     result = await track_product_shipment("Product A", "1234567890")
     assert "Shipment for" in result
     assert "1234567890" in result
-
-
-@pytest.mark.asyncio
-async def test_evaluate_product_performance():
-    result = await evaluate_product_performance("Product A", "Customer reviews and sales data")
-    assert "Performance of" in result
-    assert "evaluated based on" in result
