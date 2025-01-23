@@ -1,19 +1,7 @@
 import os
+import sys
 import pytest
 from unittest.mock import MagicMock
-
-# Mock modules and environment variables
-import sys
-sys.modules['azure.monitor.events.extension'] = MagicMock()
-
-os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
-os.environ["COSMOSDB_KEY"] = "mock-key"
-os.environ["COSMOSDB_DATABASE"] = "mock-database"
-os.environ["COSMOSDB_CONTAINER"] = "mock-container"
-os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
-os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-
 
 # Import the procurement tools for testing
 from src.backend.agents.procurement import (
@@ -40,6 +28,16 @@ from src.backend.agents.procurement import (
     allocate_budget,
     track_procurement_metrics,
 )
+
+sys.modules["azure.monitor.events.extension"] = MagicMock()
+
+os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
+os.environ["COSMOSDB_KEY"] = "mock-key"
+os.environ["COSMOSDB_DATABASE"] = "mock-database"
+os.environ["COSMOSDB_CONTAINER"] = "mock-container"
+os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
+os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
+os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
 
 # Test cases for the async functions
@@ -70,7 +68,9 @@ async def test_process_purchase_order():
 @pytest.mark.asyncio
 async def test_initiate_contract_negotiation():
     result = await initiate_contract_negotiation("VendorX", "Exclusive deal for 2025")
-    assert "Contract negotiation initiated with VendorX: Exclusive deal for 2025" in result
+    assert (
+        "Contract negotiation initiated with VendorX: Exclusive deal for 2025" in result
+    )
 
 
 @pytest.mark.asyncio
@@ -93,7 +93,9 @@ async def test_manage_vendor_relationship():
 
 @pytest.mark.asyncio
 async def test_update_procurement_policy():
-    result = await update_procurement_policy("Policy2025", "Updated terms and conditions")
+    result = await update_procurement_policy(
+        "Policy2025", "Updated terms and conditions"
+    )
     assert "Procurement policy 'Policy2025' updated." in result
 
 
@@ -335,7 +337,9 @@ async def test_track_order_invalid_number():
 
 @pytest.mark.asyncio
 async def test_initiate_contract_negotiation_long_details():
-    long_details = "This is a very long contract negotiation detail for testing purposes. " * 10
+    long_details = (
+        "This is a very long contract negotiation detail for testing purposes. " * 10
+    )
     result = await initiate_contract_negotiation("VendorY", long_details)
     assert "Contract negotiation initiated with VendorY" in result
     assert long_details in result
@@ -513,7 +517,9 @@ async def test_handle_return_negative_and_zero_quantity():
     result_negative = await handle_return("Laptop", -5, "Damaged")
     result_zero = await handle_return("Laptop", 0, "Packaging Issue")
     assert "Processed return of -5 units of Laptop due to Damaged." in result_negative
-    assert "Processed return of 0 units of Laptop due to Packaging Issue." in result_zero
+    assert (
+        "Processed return of 0 units of Laptop due to Packaging Issue." in result_zero
+    )
 
 
 @pytest.mark.asyncio
@@ -666,4 +672,3 @@ async def test_order_software_license_invalid_cases():
     result_zero_quantity = await order_software_license("Photoshop", "Single User", 0)
     assert "Ordered 5  licenses of Photoshop." in result_empty_type
     assert "Ordered 0 Single User licenses of Photoshop." in result_zero_quantity
-

@@ -1,9 +1,33 @@
 import os
+import sys
 import pytest
 from unittest.mock import MagicMock
+# Import functions directly from product.py for testing
+from src.backend.agents.product import (
+    add_mobile_extras_pack,
+    get_product_info,
+    update_inventory,
+    schedule_product_launch,
+    analyze_sales_data,
+    get_customer_feedback,
+    manage_promotions,
+    set_reorder_level,
+    check_inventory,
+    update_product_price,
+    provide_product_recommendations,
+    handle_product_recall,
+    set_product_discount,
+    manage_supply_chain,
+    forecast_product_demand,
+    handle_product_complaints,
+    monitor_market_trends,
+    generate_product_report,
+    develop_new_product_ideas,
+    optimize_product_page,
+    track_product_shipment,
+    evaluate_product_performance,
+)
 
-# Mock the azure.monitor.events.extension module globally
-import sys
 sys.modules['azure.monitor.events.extension'] = MagicMock()
 
 # Set environment variables to mock dependencies
@@ -14,6 +38,7 @@ os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
+
 
 # Import functions directly from product.py for testing
 from src.backend.agents.product import (
@@ -39,7 +64,6 @@ from src.backend.agents.product import (
     optimize_product_page,
     track_product_shipment,
     evaluate_product_performance,
-    
 )
 
 
@@ -227,7 +251,7 @@ async def test_handle_product_recall_valid():
     result = await handle_product_recall("Product B", "Safety concerns")
     assert "Product recall for" in result
     assert "Product B" in result
-    assert "Safety concerns" in result    
+    assert "Safety concerns" in result
 
 
 @pytest.mark.asyncio
@@ -346,7 +370,7 @@ async def test_manage_supply_chain_empty_supplier():
 @pytest.mark.asyncio
 async def test_analyze_sales_data_invalid_period():
     result = await analyze_sales_data("Product R", "InvalidPeriod")
-    assert "Sales data for **'Product R'** over **InvalidPeriod** analyzed." in result    
+    assert "Sales data for **'Product R'** over **InvalidPeriod** analyzed." in result
 
 
 # Test `update_product_price` with zero price
@@ -478,4 +502,3 @@ async def test_generate_product_report_detailed_type():
 async def test_update_product_price_high_precision():
     result = await update_product_price("Product AG", 123.456789)
     assert "Price for **'Product AG'** updated to **$123.46**." in result
-
