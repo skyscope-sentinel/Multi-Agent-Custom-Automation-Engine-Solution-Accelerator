@@ -54,7 +54,7 @@ jobs:
       - name: Run tests with coverage
         if: env.skip_tests == 'false'
         run: |
-          pytest --asyncio-mode=auto --cov=. --cov-report=term-missing --cov-report=xml
+          pytest --cov=. --cov-report=term-missing --cov-report=xml
           
       - name: Skip coverage report if no tests
         if: env.skip_tests == 'true'
