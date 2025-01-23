@@ -13,8 +13,8 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment"
 os.environ["COSMOSDB_DATABASE"] = "mock_database"
 os.environ["COSMOSDB_CONTAINER"] = "mock_container"
 
-
-@pytest.mark.asyncio
+# Test cases with loop_scope="session" for async functions
+@pytest.mark.asyncio(loop_scope="session")
 @patch("src.backend.utils.SingleThreadedAgentRuntime")
 @patch("src.backend.utils.CosmosBufferedChatCompletionContext")
 @patch("src.backend.utils.ToolAgent.register")
@@ -34,7 +34,7 @@ async def test_initialize_runtime_and_context_new_session(
     assert len(runtime_dict) > 0
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="session")
 @patch("src.backend.utils.SingleThreadedAgentRuntime")
 @patch("src.backend.utils.CosmosBufferedChatCompletionContext")
 @patch("src.backend.utils.ToolAgent.register")
@@ -54,6 +54,7 @@ async def test_initialize_runtime_and_context_reuse_existing_session(
     assert context == mock_context_instance
 
 
+# Regular (non-async) test case
 @patch("src.backend.utils.requests.post")
 @patch("src.backend.utils.DefaultAzureCredential")
 def test_rai_success_true(mock_credential, mock_post):
