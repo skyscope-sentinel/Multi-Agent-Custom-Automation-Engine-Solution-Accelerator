@@ -1,5 +1,5 @@
-import os
 import pytest
+import os
 from unittest.mock import patch, AsyncMock
 from src.backend.utils import initialize_runtime_and_context, runtime_dict, rai_success
 from uuid import uuid4
@@ -58,9 +58,7 @@ async def test_initialize_runtime_and_context_reuse_existing_session(
 @patch("src.backend.utils.DefaultAzureCredential")
 def test_rai_success_true(mock_credential, mock_post):
     mock_credential.return_value.get_token.return_value.token = "mock_token"
-    mock_post.return_value.json.return_value = {
-        "choices": [{"message": {"content": "FALSE"}}]
-    }
+    mock_post.return_value.json.return_value = {"choices": [{"message": {"content": "FALSE"}}]}
     mock_post.return_value.status_code = 200
 
     result = rai_success("This is a valid description.")
