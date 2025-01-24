@@ -1,8 +1,12 @@
-import json
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 import os
 import sys
+import json
+from unittest.mock import AsyncMock, MagicMock, patch
+import pytest
+from src.backend.agents.planner import PlannerAgent
+from src.backend.models.messages import InputTask, HumanClarification, Plan, PlanStatus
+from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
+
 
 # Mock azure.monitor.events.extension globally
 sys.modules['azure.monitor.events.extension'] = MagicMock()
@@ -15,11 +19,6 @@ os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
-
-# Import PlannerAgent after setting mocks
-from src.backend.agents.planner import PlannerAgent
-from src.backend.models.messages import InputTask, HumanClarification, Plan, PlanStatus
-from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 
 
 @pytest.fixture
@@ -58,6 +57,7 @@ def planner_agent(mock_model_client, mock_context, mock_runtime_context):
         agent_tools_list=["tool1", "tool2"],
     )
 
+
 @pytest.mark.asyncio
 async def test_handle_plan_clarification(planner_agent, mock_context):
     """Test the handle_plan_clarification method."""
@@ -88,6 +88,7 @@ async def test_handle_plan_clarification(planner_agent, mock_context):
     mock_context.get_plan_by_session.assert_called_with(session_id="test-session")
     mock_context.update_plan.assert_called()
     mock_context.add_item.assert_called()
+
 
 @pytest.mark.asyncio
 async def test_generate_instruction_with_special_characters(planner_agent):
@@ -132,6 +133,7 @@ async def test_handle_plan_clarification_updates_plan_correctly(planner_agent, m
     assert mock_plan.human_clarification_response == "Updated clarification text"
     mock_context.update_plan.assert_called_with(mock_plan)
 
+
 @pytest.mark.asyncio
 async def test_handle_input_task_with_exception(planner_agent, mock_context):
     """Test handle_input_task gracefully handles exceptions."""
@@ -150,6 +152,7 @@ async def test_handle_input_task_with_exception(planner_agent, mock_context):
     mock_context.add_item.assert_not_called()
     mock_context.add_plan.assert_not_called()
     mock_context.add_step.assert_not_called()
+
 
 @pytest.mark.asyncio
 async def test_handle_plan_clarification_handles_memory_error(planner_agent, mock_context):
@@ -180,6 +183,7 @@ async def test_generate_instruction_with_missing_objective(planner_agent):
     assert "The agents you have access to are:" in instruction
     assert "These agents have access to the following functions:" in instruction
 
+
 @pytest.mark.asyncio
 async def test_create_structured_plan_with_error(planner_agent, mock_context):
     """Test _create_structured_plan when an error occurs during plan creation."""
@@ -194,6 +198,7 @@ async def test_create_structured_plan_with_error(planner_agent, mock_context):
     assert len(steps) == 0
     mock_context.add_plan.assert_not_called()
     mock_context.add_step.assert_not_called()
+
 
 @pytest.mark.asyncio
 async def test_create_structured_plan_with_multiple_steps(planner_agent, mock_context):
