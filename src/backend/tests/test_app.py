@@ -64,10 +64,6 @@ def test_input_task_missing_description():
     assert "detail" in response.json()
 
 
-def test_input_task_success():
-    """Test the successful creation of an InputTask."""
-
-
 def test_basic_endpoint():
     """Test a basic endpoint to ensure the app runs."""
     response = client.get("/")
