@@ -1,10 +1,7 @@
 import os
 import sys
-import pytest
 from unittest.mock import MagicMock
-
-# Mock Azure SDK dependencies
-sys.modules["azure.monitor.events.extension"] = MagicMock()
+import pytest
 
 # Import the required functions for testing
 from src.backend.agents.product import (
@@ -30,6 +27,9 @@ from src.backend.agents.product import (
     track_product_shipment,
     evaluate_product_performance,
 )
+
+# Mock Azure SDK dependencies
+sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 # Set up environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
