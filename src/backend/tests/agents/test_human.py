@@ -8,9 +8,12 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-sys.modules["azure.monitor.events.extension"] = MagicMock()
+# Project-specific imports
+from autogen_core.base import AgentInstantiationContext, AgentRuntime
+from src.backend.agents.human import HumanAgent
+from src.backend.models.messages import HumanFeedback, Step, StepStatus, BAgentType
 
-# Environment and Mock setup (must be before imports)
+# Set environment variables before any imports to avoid runtime errors
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
@@ -20,15 +23,8 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-
-from autogen_core.base import AgentInstantiationContext, AgentRuntime
-from src.backend.agents.human import HumanAgent
-from src.backend.models.messages import (
-    HumanFeedback,
-    Step,
-    StepStatus,
-    BAgentType,
-)
+# Mock Azure modules
+sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 
 @pytest.fixture
