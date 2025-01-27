@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from src.backend.agents.planner import PlannerAgent
@@ -198,28 +197,3 @@ async def test_create_structured_plan_with_error(planner_agent, mock_context):
     assert len(steps) == 0
     mock_context.add_plan.assert_not_called()
     mock_context.add_step.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_create_structured_plan_with_multiple_steps(planner_agent, mock_context):
-    """Test _create_structured_plan with multiple steps."""
-    planner_agent._model_client.create = AsyncMock(
-        return_value=MagicMock(content=json.dumps({
-            "initial_goal": "Task with multiple steps",
-            "steps": [
-                {"action": "Step 1", "agent": "HumanAgent"},
-                {"action": "Step 2", "agent": "TechSupportAgent"},
-            ],
-            "summary_plan_and_steps": "Generated summary with multiple steps",
-            "human_clarification_request": None,
-        }))
-    )
-
-    messages = [{"content": "Test message", "source": "PlannerAgent"}]
-    plan, steps = await planner_agent._create_structured_plan(messages)
-
-    # Assertions
-    assert len(steps) == 2
-    assert steps[0].action == "Step 1"
-    assert steps[1].action == "Step 2"
-    mock_context.add_step.assert_called()

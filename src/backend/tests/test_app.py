@@ -15,6 +15,10 @@ os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
 os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
+os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
+os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
+os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
+os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
 # Mock telemetry initialization in the app
 with patch("src.backend.app.configure_azure_monitor", MagicMock()):
