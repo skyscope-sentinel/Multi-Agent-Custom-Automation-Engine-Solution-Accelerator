@@ -8,6 +8,7 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
+
 # Function to set environment variables
 def setup_environment_variables():
     """Set environment variables required for the tests."""
@@ -19,6 +20,7 @@ def setup_environment_variables():
     os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
     os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
     os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
+
 
 # Call the function to set environment variables
 setup_environment_variables()
