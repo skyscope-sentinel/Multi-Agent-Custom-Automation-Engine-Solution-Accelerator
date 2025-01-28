@@ -4,25 +4,29 @@ import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 
-# Mock Azure dependencies
+# Ensure the `src` folder is included in the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+
+# Mock Azure dependencies to prevent import errors
 sys.modules["azure.monitor"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
 
-# Set up environment variables
+# Mock environment variables before importing app
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
 os.environ["COSMOSDB_CONTAINER"] = "mock-container"
 os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
-os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-# Mock telemetry initialization in the app
-with patch("src.backend.app.configure_azure_monitor", MagicMock()):
-    from src.backend.app import app
+# Mock telemetry initialization to prevent errors
+patch("src.backend.app.configure_azure_monitor", MagicMock()).start()
+
+# Import the FastAPI app after mocking dependencies
+from src.backend.app import app
 
 # Initialize FastAPI test client
 client = TestClient(app)
@@ -71,7 +75,7 @@ def test_input_task_missing_description():
 def test_basic_endpoint():
     """Test a basic endpoint to ensure the app runs."""
     response = client.get("/")
-    assert response.status_code == 404  # the root endpoint is not defined
+    assert response.status_code == 404  # The root endpoint is not defined
 
 
 def test_input_task_empty_description():
@@ -82,6 +86,7 @@ def test_input_task_empty_description():
 
     assert response.status_code == 422
     assert "detail" in response.json()  # Assert error message for missing description
+
 
 if __name__ == "__main__":
     pytest.main()

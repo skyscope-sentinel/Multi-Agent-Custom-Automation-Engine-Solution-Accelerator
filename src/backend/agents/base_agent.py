@@ -21,7 +21,7 @@ from src.backend.models.messages import (
     Step,
     StepStatus,
 )
-from event_utils import track_event_if_configured
+from src.backend.event_utils import track_event_if_configured
 
 
 class BaseAgent(RoutedAgent):

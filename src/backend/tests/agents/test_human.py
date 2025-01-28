@@ -8,11 +8,6 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-# Project-specific imports
-from autogen_core.base import AgentInstantiationContext, AgentRuntime
-from src.backend.agents.human import HumanAgent
-from src.backend.models.messages import HumanFeedback, Step, StepStatus, BAgentType
-
 # Set environment variables before any imports to avoid runtime errors
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
@@ -23,8 +18,14 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-# Mock Azure modules
+# Mock Azure and event_utils dependencies globally
 sys.modules["azure.monitor.events.extension"] = MagicMock()
+sys.modules["src.backend.event_utils"] = MagicMock()
+
+# Project-specific imports
+from autogen_core.base import AgentInstantiationContext, AgentRuntime
+from src.backend.agents.human import HumanAgent
+from src.backend.models.messages import HumanFeedback, Step, StepStatus, BAgentType
 
 
 @pytest.fixture
@@ -73,7 +74,7 @@ def setup_agent():
 
 
 @patch("src.backend.agents.human.logging.info")
-@patch("src.backend.agents.human.track_event")
+@patch("src.backend.agents.human.track_event_if_configured")
 @pytest.mark.asyncio
 async def test_handle_step_feedback_step_not_found(mock_track_event, mock_logging, setup_agent):
     """
@@ -91,7 +92,3 @@ async def test_handle_step_feedback_step_not_found(mock_track_event, mock_loggin
     mock_logging.assert_called_with(f"No step found with id: {step_id}")
     memory.update_step.assert_not_called()
     mock_track_event.assert_not_called()
-
-
-if __name__ == "__main__":
-    pytest.main()

@@ -19,16 +19,8 @@ from src.backend.models.messages import (
     AgentMessage,
     PlanWithSteps,
 )
-
-from src.backend.utils import (
-    initialize_runtime_and_context,
-    retrieve_all_agent_tools,
-    rai_success,
-)
-
-from utils import initialize_runtime_and_context, retrieve_all_agent_tools, rai_success
-from event_utils import track_event_if_configured
-
+from src.backend.utils import initialize_runtime_and_context, retrieve_all_agent_tools, rai_success
+from src.backend.event_utils import track_event_if_configured
 from fastapi.middleware.cors import CORSMiddleware
 from azure.monitor.opentelemetry import configure_azure_monitor
 
@@ -168,11 +160,9 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     track_event_if_configured(
         "InputTaskProcessed",
         {
-            "status": (
-                f"Plan created:\n {plan.summary}"
-                if plan.id
-                else "Error occurred: Plan ID is empty"
-            ),
+            "status": f"Plan created:\n {plan.summary}"
+            if plan.id
+            else "Error occurred: Plan ID is empty",
             "session_id": input_task.session_id,
             "plan_id": plan.id,
             "description": input_task.description,
@@ -180,11 +170,9 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     )
 
     return {
-        "status": (
-            f"Plan created:\n {plan.summary}"
-            if plan.id
-            else "Error occurred: Plan ID is empty"
-        ),
+        "status": f"Plan created:\n {plan.summary}"
+        if plan.id
+        else "Error occurred: Plan ID is empty",
         "session_id": input_task.session_id,
         "plan_id": plan.id,
         "description": input_task.description,
