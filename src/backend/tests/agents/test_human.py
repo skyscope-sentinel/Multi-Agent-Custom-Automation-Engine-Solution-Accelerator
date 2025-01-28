@@ -8,24 +8,49 @@ import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
-# Set environment variables before any imports to avoid runtime errors
-os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
-os.environ["COSMOSDB_KEY"] = "mock-key"
-os.environ["COSMOSDB_DATABASE"] = "mock-database"
-os.environ["COSMOSDB_CONTAINER"] = "mock-container"
-os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
-os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
-os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
+# Function to set environment variables
+def setup_environment_variables():
+    """Set environment variables required for the tests."""
+    os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
+    os.environ["COSMOSDB_KEY"] = "mock-key"
+    os.environ["COSMOSDB_DATABASE"] = "mock-database"
+    os.environ["COSMOSDB_CONTAINER"] = "mock-container"
+    os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
+    os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
+    os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
+    os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
+
+# Call the function to set environment variables
+setup_environment_variables()
 
 # Mock Azure and event_utils dependencies globally
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["src.backend.event_utils"] = MagicMock()
 
-# Project-specific imports
+# Project-specific imports (must come after environment setup)
 from autogen_core.base import AgentInstantiationContext, AgentRuntime
 from src.backend.agents.human import HumanAgent
 from src.backend.models.messages import HumanFeedback, Step, StepStatus, BAgentType
+
+
+@pytest.fixture(autouse=True)
+def ensure_env_variables(monkeypatch):
+    """
+    Fixture to ensure environment variables are set for all tests.
+    This overrides any modifications made by individual tests.
+    """
+    env_vars = {
+        "COSMOSDB_ENDPOINT": "https://mock-endpoint",
+        "COSMOSDB_KEY": "mock-key",
+        "COSMOSDB_DATABASE": "mock-database",
+        "COSMOSDB_CONTAINER": "mock-container",
+        "APPLICATIONINSIGHTS_INSTRUMENTATION_KEY": "mock-instrumentation-key",
+        "AZURE_OPENAI_DEPLOYMENT_NAME": "mock-deployment-name",
+        "AZURE_OPENAI_API_VERSION": "2023-01-01",
+        "AZURE_OPENAI_ENDPOINT": "https://mock-openai-endpoint",
+    }
+    for key, value in env_vars.items():
+        monkeypatch.setenv(key, value)
 
 
 @pytest.fixture
