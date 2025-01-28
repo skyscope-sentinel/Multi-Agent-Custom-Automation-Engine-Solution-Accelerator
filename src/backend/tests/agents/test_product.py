@@ -15,6 +15,7 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
+
 # Import the required functions for testing
 from src.backend.agents.product import (
     add_mobile_extras_pack,
