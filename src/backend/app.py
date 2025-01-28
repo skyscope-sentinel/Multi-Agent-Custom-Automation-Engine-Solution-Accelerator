@@ -19,18 +19,29 @@ from src.backend.models.messages import (
     AgentMessage,
     PlanWithSteps,
 )
+
 from src.backend.utils import (
     initialize_runtime_and_context,
     retrieve_all_agent_tools,
     rai_success,
 )
+
+from utils import initialize_runtime_and_context, retrieve_all_agent_tools, rai_success
+from event_utils import track_event_if_configured
+
 from fastapi.middleware.cors import CORSMiddleware
 from azure.monitor.opentelemetry import configure_azure_monitor
-from azure.monitor.events.extension import track_event
 
-configure_azure_monitor(
-    connection_string=os.getenv("APPLICATIONINSIGHTS_INSTRUMENTATION_KEY")
-)
+
+# Check if the Application Insights Instrumentation Key is set in the environment variables
+instrumentation_key = os.getenv("APPLICATIONINSIGHTS_INSTRUMENTATION_KEY")
+if instrumentation_key:
+    # Configure Application Insights if the Instrumentation Key is found
+    configure_azure_monitor(connection_string=instrumentation_key)
+    logging.info("Application Insights configured with the provided Instrumentation Key")
+else:
+    # Log a warning if the Instrumentation Key is not found
+    logging.warning("No Application Insights Instrumentation Key found. Skipping configuration")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -117,7 +128,7 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     if not rai_success(input_task.description):
         print("RAI failed")
 
-        track_event(
+        track_event_if_configured(
             "RAI failed",
             {
                 "status": "Plan not created",
@@ -133,7 +144,7 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     user_id = authenticated_user["user_principal_id"]
 
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
 
         raise HTTPException(status_code=400, detail="no user")
     if not input_task.session_id:
@@ -154,7 +165,7 @@ async def input_task_endpoint(input_task: InputTask, request: Request):
     logging.info(f"Plan created: {plan.summary}")
 
     # Log custom event for successful input task processing
-    track_event(
+    track_event_if_configured(
         "InputTaskProcessed",
         {
             "status": (
@@ -239,7 +250,7 @@ async def human_feedback_endpoint(human_feedback: HumanFeedback, request: Reques
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
         raise HTTPException(status_code=400, detail="no user")
     # Initialize runtime and context
     runtime, _ = await initialize_runtime_and_context(
@@ -250,7 +261,7 @@ async def human_feedback_endpoint(human_feedback: HumanFeedback, request: Reques
     human_agent_id = AgentId("human_agent", human_feedback.session_id)
     await runtime.send_message(human_feedback, human_agent_id)
 
-    track_event(
+    track_event_if_configured(
         "Completed Feedback received",
         {
             "status": "Feedback received",
@@ -316,7 +327,7 @@ async def human_clarification_endpoint(
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
         raise HTTPException(status_code=400, detail="no user")
     # Initialize runtime and context
     runtime, _ = await initialize_runtime_and_context(
@@ -327,7 +338,7 @@ async def human_clarification_endpoint(
     planner_agent_id = AgentId("planner_agent", human_clarification.session_id)
     await runtime.send_message(human_clarification, planner_agent_id)
 
-    track_event(
+    track_event_if_configured(
         "Completed Human clarification on the plan",
         {
             "status": "Clarification received",
@@ -398,7 +409,7 @@ async def approve_step_endpoint(
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
         raise HTTPException(status_code=400, detail="no user")
     # Initialize runtime and context
     runtime, _ = await initialize_runtime_and_context(user_id=user_id)
@@ -413,7 +424,7 @@ async def approve_step_endpoint(
     )
     # Return a status message
     if human_feedback.step_id:
-        track_event(
+        track_event_if_configured(
             "Completed Human clarification with step_id",
             {
                 "status": f"Step {human_feedback.step_id} - Approval:{human_feedback.approved}."
@@ -424,7 +435,7 @@ async def approve_step_endpoint(
             "status": f"Step {human_feedback.step_id} - Approval:{human_feedback.approved}."
         }
     else:
-        track_event(
+        track_event_if_configured(
             "Completed Human clarification without step_id",
             {"status": "All steps approved"},
         )
@@ -496,7 +507,7 @@ async def get_plans(
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
         raise HTTPException(status_code=400, detail="no user")
 
     cosmos = CosmosBufferedChatCompletionContext(session_id or "", user_id)
@@ -504,7 +515,7 @@ async def get_plans(
     if session_id:
         plan = await cosmos.get_plan_by_session(session_id=session_id)
         if not plan:
-            track_event(
+            track_event_if_configured(
                 "GetPlanBySessionNotFound",
                 {"status_code": 400, "detail": "Plan not found"},
             )
@@ -584,7 +595,7 @@ async def get_steps_by_plan(plan_id: str, request: Request) -> List[Step]:
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
         raise HTTPException(status_code=400, detail="no user")
     cosmos = CosmosBufferedChatCompletionContext("", user_id)
     steps = await cosmos.get_steps_by_plan(plan_id=plan_id)
@@ -642,7 +653,7 @@ async def get_agent_messages(session_id: str, request: Request) -> List[AgentMes
     authenticated_user = get_authenticated_user_details(request_headers=request.headers)
     user_id = authenticated_user["user_principal_id"]
     if not user_id:
-        track_event("UserIdNotFound", {"status_code": 400, "detail": "no user"})
+        track_event_if_configured("UserIdNotFound", {"status_code": 400, "detail": "no user"})
         raise HTTPException(status_code=400, detail="no user")
     cosmos = CosmosBufferedChatCompletionContext(session_id, user_id)
     agent_messages = await cosmos.get_data_by_type("agent_message")
