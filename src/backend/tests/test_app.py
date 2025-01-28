@@ -83,6 +83,5 @@ def test_input_task_empty_description():
     assert response.status_code == 422
     assert "detail" in response.json()  # Assert error message for missing description
 
-
 if __name__ == "__main__":
     pytest.main()
