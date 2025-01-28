@@ -1,11 +1,8 @@
 import os
 import sys
-import pytest
 from unittest.mock import MagicMock, patch
+import pytest
 from fastapi.testclient import TestClient
-
-# Ensure the `src` folder is included in the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 # Mock Azure dependencies to prevent import errors
 sys.modules["azure.monitor"] = MagicMock()
@@ -17,16 +14,16 @@ os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
 os.environ["COSMOSDB_CONTAINER"] = "mock-container"
-os.environ["APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"] = "mock-instrumentation-key"
+os.environ[
+    "APPLICATIONINSIGHTS_INSTRUMENTATION_KEY"
+] = "InstrumentationKey=mock-instrumentation-key;IngestionEndpoint=https://mock-ingestion-endpoint"
 os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
 # Mock telemetry initialization to prevent errors
-patch("src.backend.app.configure_azure_monitor", MagicMock()).start()
-
-# Import the FastAPI app after mocking dependencies
-from src.backend.app import app
+with patch("azure.monitor.opentelemetry.configure_azure_monitor", MagicMock()):
+    from src.backend.app import app
 
 # Initialize FastAPI test client
 client = TestClient(app)

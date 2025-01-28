@@ -1,7 +1,7 @@
 import os
 import sys
-import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
+import pytest
 from autogen_core.components.tools import FunctionTool
 
 # Mock the azure.monitor.events.extension module globally
@@ -18,8 +18,6 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-
-# Import the functions under test
 from src.backend.agents.tech_support import (
     send_welcome_email,
     set_up_office_365_account,
@@ -66,6 +64,7 @@ from src.backend.agents.tech_support import (
     monitor_system_performance,
     get_tech_support_tools,
 )
+
 
 # Mock Azure DefaultAzureCredential
 @pytest.fixture(autouse=True)
