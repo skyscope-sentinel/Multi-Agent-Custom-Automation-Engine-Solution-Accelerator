@@ -1,11 +1,11 @@
 # pylint: disable=import-error, wrong-import-position, missing-module-docstring
+import asyncio
 import json
 import os
 import sys
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pydantic import ValidationError
-
 
 # Environment and module setup
 sys.modules["azure.monitor.events.extension"] = MagicMock()
@@ -22,9 +22,16 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 from src.backend.agents.agentutils import extract_and_update_transition_states  # noqa: F401, C0413
 from src.backend.models.messages import Step  # noqa: F401, C0413
 
+@pytest.fixture(scope="function")
+async def reset_event_loop():
+    """Ensure a fresh event loop for each test."""
+    yield
+    loop = asyncio.get_event_loop()
+    if not loop.is_closed():
+        loop.close()
 
 @pytest.mark.asyncio
-async def test_extract_and_update_transition_states_invalid_response():
+async def test_extract_and_update_transition_states_invalid_response(reset_event_loop):
     """Test handling of invalid JSON response from model client."""
     session_id = "test_session"
     user_id = "test_user"
@@ -57,9 +64,8 @@ async def test_extract_and_update_transition_states_invalid_response():
 
     cosmos_mock.update_step.assert_not_called()
 
-
 @pytest.mark.asyncio
-async def test_extract_and_update_transition_states_validation_error():
+async def test_extract_and_update_transition_states_validation_error(reset_event_loop):
     """Test handling of a response missing required fields."""
     session_id = "test_session"
     user_id = "test_user"
@@ -95,7 +101,6 @@ async def test_extract_and_update_transition_states_validation_error():
 
     cosmos_mock.update_step.assert_not_called()
 
-
 def test_step_initialization():
     """Test Step initialization with valid data."""
     step = Step(
@@ -118,7 +123,6 @@ def test_step_initialization():
     assert step.status == "planned"
     assert step.human_approval_status == "requested"
 
-
 def test_step_missing_required_fields():
     """Test Step initialization with missing required fields."""
     with pytest.raises(ValidationError):
@@ -128,4 +132,3 @@ def test_step_missing_required_fields():
             agent="test_agent",
             session_id="test_session",
         )
-        
