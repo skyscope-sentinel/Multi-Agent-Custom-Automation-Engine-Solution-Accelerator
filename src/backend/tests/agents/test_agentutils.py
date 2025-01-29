@@ -51,7 +51,7 @@ def test_step_initialization():
     assert step.agent_reply == "test_reply"
     assert step.status == "planned"
     assert step.human_approval_status == "requested"
-    
+
 
 def test_step_missing_required_fields():
     """Test Step initialization with missing required fields."""
