@@ -1,9 +1,8 @@
 # pylint: disable=import-error, wrong-import-position, missing-module-docstring
 import asyncio
-import json
 import os
 import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 import pytest
 from pydantic import ValidationError
 
@@ -19,8 +18,8 @@ os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
 # noqa: F401 is to ignore unused import warnings (if any)
-from src.backend.agents.agentutils import extract_and_update_transition_states  # noqa: F401, C0413
 from src.backend.models.messages import Step  # noqa: F401, C0413
+
 
 @pytest.fixture(scope="function")
 async def reset_event_loop():
@@ -52,6 +51,7 @@ def test_step_initialization():
     assert step.agent_reply == "test_reply"
     assert step.status == "planned"
     assert step.human_approval_status == "requested"
+    
 
 def test_step_missing_required_fields():
     """Test Step initialization with missing required fields."""
