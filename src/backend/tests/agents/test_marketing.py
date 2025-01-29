@@ -380,7 +380,6 @@ async def test_analyze_market_trends_empty_industry():
     assert "Market trends analyzed for the '' industry." in result
 
 
-
 @pytest.mark.asyncio
 async def test_plan_advertising_budget_no_campaign_name():
     """Test planning an advertising budget with no campaign name."""
