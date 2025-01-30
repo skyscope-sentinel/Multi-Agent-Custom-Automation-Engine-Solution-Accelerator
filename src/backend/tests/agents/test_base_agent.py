@@ -22,6 +22,7 @@ from src.backend.agents.base_agent import BaseAgent
 from src.backend.models.messages import ActionRequest, Step, StepStatus
 from autogen_core.base import AgentId
 
+
 # Context manager for setting up mocks
 @contextmanager
 def mock_context():

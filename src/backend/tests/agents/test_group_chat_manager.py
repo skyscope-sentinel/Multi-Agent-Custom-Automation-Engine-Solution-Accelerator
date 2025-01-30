@@ -1,8 +1,11 @@
+"""
+Combined Test cases for GroupChatManager class in the backend agents module.
+"""
+
 import os
 import sys
 from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
-
 
 # Set mock environment variables for Azure and CosmosDB before importing anything else
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -13,21 +16,17 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-
 # Mock Azure dependencies
 sys.modules["azure.monitor.events.extension"] = MagicMock()
-
 
 # Import after setting environment variables
 from src.backend.agents.group_chat_manager import GroupChatManager
 from src.backend.models.messages import (
-    HumanFeedback,
     Step,
     StepStatus,
     BAgentType,
-    Plan,
 )
-from autogen_core.base import MessageContext, AgentInstantiationContext, AgentRuntime
+from autogen_core.base import AgentInstantiationContext, AgentRuntime
 from autogen_core.components.models import AzureOpenAIChatCompletionClient
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from autogen_core.base import AgentId
@@ -99,3 +98,31 @@ async def test_update_step_status(mock_track_event, setup_group_chat_manager):
             "source": step.agent,
         },
     )
+
+
+@pytest.mark.asyncio
+async def test_update_step_invalid_feedback_status(setup_group_chat_manager):
+    """
+    Test `_update_step_status` with invalid feedback status.
+    Covers lines 210-211.
+    """
+    group_chat_manager, mock_memory, session_id, user_id, mock_agent_ids = setup_group_chat_manager
+
+    # Create a mock Step
+    step = Step(
+        id="test_step_id",
+        session_id=session_id,
+        plan_id="test_plan_id",
+        user_id=user_id,
+        action="Test Action",
+        agent=BAgentType.human_agent,
+        status=StepStatus.planned,
+    )
+
+    # Call the method with invalid feedback status
+    await group_chat_manager._update_step_status(step, None, "Feedback message")
+
+    # Assertions
+    step.status = StepStatus.planned  # Status should remain unchanged
+    step.human_feedback = "Feedback message"
+    mock_memory.update_step.assert_called_once_with(step)
