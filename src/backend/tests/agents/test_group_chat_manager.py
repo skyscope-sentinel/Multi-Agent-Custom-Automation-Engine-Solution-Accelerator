@@ -4,7 +4,7 @@ Combined Test cases for GroupChatManager class in the backend agents module.
 
 import os
 import sys
-from unittest.mock import AsyncMock, patch, MagicMock, call
+from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
 
 # Set mock environment variables for Azure and CosmosDB before importing anything else
@@ -25,10 +25,8 @@ from src.backend.models.messages import (
     Step,
     StepStatus,
     BAgentType,
-    Plan,
-    ActionRequest,
 )
-from autogen_core.base import MessageContext, AgentInstantiationContext, AgentRuntime
+from autogen_core.base import AgentInstantiationContext, AgentRuntime
 from autogen_core.components.models import AzureOpenAIChatCompletionClient
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from autogen_core.base import AgentId
