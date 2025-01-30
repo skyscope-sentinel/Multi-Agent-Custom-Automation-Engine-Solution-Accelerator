@@ -51,6 +51,7 @@ from src.backend.agents.hr import (
 )
 # pylint: enable=C0413
 
+
 @pytest.mark.asyncio
 async def test_schedule_orientation_session():
     """Test scheduling an orientation session."""
