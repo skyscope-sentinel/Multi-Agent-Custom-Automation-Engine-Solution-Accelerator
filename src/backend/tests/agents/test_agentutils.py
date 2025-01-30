@@ -1,5 +1,4 @@
 # pylint: disable=import-error, wrong-import-position, missing-module-docstring
-import asyncio
 import os
 import sys
 from unittest.mock import MagicMock
@@ -17,17 +16,8 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-# noqa: F401 is to ignore unused import warnings (if any)
+from src.backend.agents.agentutils import extract_and_update_transition_states  # noqa: F401, C0413
 from src.backend.models.messages import Step  # noqa: F401, C0413
-
-
-@pytest.fixture(scope="function")
-async def reset_event_loop():
-    """Ensure a fresh event loop for each test."""
-    yield
-    loop = asyncio.get_event_loop()
-    if not loop.is_closed():
-        loop.close()
 
 
 def test_step_initialization():
