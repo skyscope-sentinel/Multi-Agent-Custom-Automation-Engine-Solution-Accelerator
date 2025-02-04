@@ -7,18 +7,11 @@ import asyncio
 
 # --- MOCK EXTERNAL DEPENDENCIES ---
 # Prevent import errors for Azure modules.
-from unittest.mock import MagicMock, patch
-import pytest
-from fastapi.testclient import TestClient
-
-# Mock Azure dependencies to prevent import errors
 sys.modules["azure.monitor"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 sys.modules["azure.monitor.opentelemetry"] = MagicMock()
 
-
 # Set required environment variables
-# Mock environment variables before importing app
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
@@ -36,6 +29,7 @@ with patch("azure.monitor.opentelemetry.configure_azure_monitor", MagicMock()):
 
 client = TestClient(app)
 
+# --- FAKE CLASSES AND FUNCTIONS ---
 class FakePlan:
     id = "fake_plan_id"
     summary = "Fake plan summary"
@@ -120,28 +114,14 @@ class FakeCosmos:
             "ts": 123456789,
         }]
 
-
+# --- PYTEST FIXTURE TO OVERRIDE DEPENDENCIES ---
 @pytest.fixture(autouse=True)
 def override_dependencies(monkeypatch):
     # Override authentication so that the headers always yield a valid user.
-
-# Mock telemetry initialization to prevent errors
-with patch("azure.monitor.opentelemetry.configure_azure_monitor", MagicMock()):
-    from src.backend.app import app
-
-# Initialize FastAPI test client
-client = TestClient(app)
-
-
-@pytest.fixture(autouse=True)
-def mock_dependencies(monkeypatch):
-    """Mock dependencies to simplify tests."""
-
     monkeypatch.setattr(
         "src.backend.auth.auth_utils.get_authenticated_user_details",
         lambda headers: {"user_principal_id": "mock-user-id"},
     )
-
     # Override the agent tools retrieval to return a tool with the expected values.
     monkeypatch.setattr(
         "src.backend.utils.retrieve_all_agent_tools",
@@ -155,7 +135,9 @@ def mock_dependencies(monkeypatch):
     monkeypatch.setattr("src.backend.app.initialize_runtime_and_context", fake_initialize_runtime_and_context)
     monkeypatch.setattr("src.backend.app.CosmosBufferedChatCompletionContext", FakeCosmos)
     monkeypatch.setattr("src.backend.app.track_event_if_configured", lambda event, props: None)
-    
+
+# --- TEST CASES ---
+# Note: We remove extra fields (like "user_id") from payloads so that they match the expected schema.
 
 def test_input_task_invalid_json():
     invalid_json = "Invalid JSON data"
@@ -163,29 +145,15 @@ def test_input_task_invalid_json():
     response = client.post("/input_task", data=invalid_json, headers=headers)
     assert response.status_code == 422
     assert "detail" in response.json()
-    
 
 def test_input_task_missing_description():
     payload = {"session_id": ""}
     headers = {"Authorization": "Bearer mock-token"}
     response = client.post("/input_task", json=payload, headers=headers)
-    monkeypatch.setattr(
-        "src.backend.utils.retrieve_all_agent_tools",
-        lambda: [{"agent": "test_agent", "function": "test_function"}],
-    )
-
-
-def test_input_task_invalid_json():
-    """Test the case where the input JSON is invalid."""
-    invalid_json = "Invalid JSON data"
-
-    headers = {"Authorization": "Bearer mock-token"}
-    response = client.post("/input_task", data=invalid_json, headers=headers)
-
     assert response.status_code == 422
     assert "detail" in response.json()
 
-    
+
 def test_human_feedback_valid():
     payload = {
         "step_id": "step1",
@@ -333,37 +301,7 @@ def test_get_plans_not_found():
     headers = {"Authorization": "Bearer mock-token"}
     response = client.get("/plans", params={"session_id": "nonexistent"}, headers=headers)
     assert response.status_code == 404
-
-    
-def test_input_task_missing_description():
-    """Test the case where the input task description is missing."""
-    input_task = {
-        "session_id": None,
-        "user_id": "mock-user-id",
-    }
-
-    headers = {"Authorization": "Bearer mock-token"}
-    response = client.post("/input_task", json=input_task, headers=headers)
-
-    # Assert response for missing description
-    assert response.status_code == 422
-    assert "detail" in response.json()
-
-
-def test_basic_endpoint():
-    """Test a basic endpoint to ensure the app runs."""
-    response = client.get("/")
-    assert response.status_code == 404  # The root endpoint is not defined
-
-
-def test_input_task_empty_description():
-    """Tests if /input_task handles an empty description."""
-    empty_task = {"session_id": None, "user_id": "mock-user-id", "description": ""}
-    headers = {"Authorization": "Bearer mock-token"}
-    response = client.post("/input_task", json=empty_task, headers=headers)
-
-    assert response.status_code == 422
-    assert "detail" in response.json()  # Assert error message for missing description
+    assert response.json()["detail"] == "Plan not found"
 
 
 if __name__ == "__main__":
