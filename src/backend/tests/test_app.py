@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 import asyncio
 
+
 # --- MOCK EXTERNAL DEPENDENCIES ---
 # Prevent import errors for Azure modules.
 sys.modules["azure.monitor"] = MagicMock()
@@ -29,18 +30,22 @@ with patch("azure.monitor.opentelemetry.configure_azure_monitor", MagicMock()):
 
 client = TestClient(app)
 
+
 # --- FAKE CLASSES AND FUNCTIONS ---
 class FakePlan:
     id = "fake_plan_id"
     summary = "Fake plan summary"
 
+
 class FakeRuntime:
     async def send_message(self, message, agent_id):
         return FakePlan()
 
+
 # Allow any arguments so that both (session_id, user_id) and keyword usage work.
 async def fake_initialize_runtime_and_context(*args, **kwargs):
     return FakeRuntime(), None
+
 
 # Our Fake Cosmos returns dictionaries that fully satisfy our Pydantic models.
 class FakeCosmos:
@@ -146,6 +151,7 @@ def test_input_task_invalid_json():
     assert response.status_code == 422
     assert "detail" in response.json()
 
+
 def test_input_task_missing_description():
     payload = {"session_id": ""}
     headers = {"Authorization": "Bearer mock-token"}
@@ -185,6 +191,7 @@ def test_human_clarification_valid():
     assert data["status"] == "Clarification received"
     assert data["session_id"] == payload["session_id"]
 
+
 def test_approve_step_with_step_id():
     payload = {
         "step_id": "step1",
@@ -199,6 +206,7 @@ def test_approve_step_with_step_id():
     assert response.status_code == 200
     data = response.json()
     assert "Step step1" in data["status"]
+
 
 def test_approve_all_steps():
     payload = {
@@ -215,6 +223,7 @@ def test_approve_all_steps():
     data = response.json()
     assert data["status"] == "All steps approved"
 
+
 def test_get_plans_with_session():
     headers = {"Authorization": "Bearer mock-token"}
     response = client.get("/plans", params={"session_id": "existing"}, headers=headers)
@@ -224,6 +233,7 @@ def test_get_plans_with_session():
     plan = data[0]
     assert plan["id"] == "existing_plan_id"
     assert "steps" in plan
+
 
 def test_get_plans_without_session():
     headers = {"Authorization": "Bearer mock-token"}
@@ -235,6 +245,7 @@ def test_get_plans_without_session():
     assert plan["id"] == "plan1"
     assert "steps" in plan
 
+
 def test_get_steps_by_plan():
     headers = {"Authorization": "Bearer mock-token"}
     response = client.get("/steps/plan1", headers=headers)
@@ -242,6 +253,7 @@ def test_get_steps_by_plan():
     data = response.json()
     assert isinstance(data, list)
     assert data[0]["plan_id"] == "plan1"
+
 
 def test_get_agent_messages():
     headers = {"Authorization": "Bearer mock-token"}
@@ -251,12 +263,14 @@ def test_get_agent_messages():
     assert isinstance(data, list)
     assert data[0]["session_id"] == "sess1"
 
+
 def test_delete_all_messages():
     headers = {"Authorization": "Bearer mock-token"}
     response = client.delete("/messages", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "All messages deleted"
+
 
 def test_get_all_messages():
     headers = {"Authorization": "Bearer mock-token"}
@@ -266,6 +280,7 @@ def test_get_all_messages():
     assert isinstance(data, list)
     assert data[0]["data_type"] == "plan"
 
+
 def test_get_agent_tools():
     response = client.get("/api/agent-tools")
     assert response.status_code == 200
@@ -273,6 +288,7 @@ def test_get_agent_tools():
     assert isinstance(data, list)
     # Our override now returns "TechSupportAgent"
     assert data[0]["agent"] == "TechSupportAgent"
+
 
 def test_basic_endpoint():
     response = client.get("/")
@@ -292,6 +308,7 @@ def test_input_task_rai_failure(monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "Plan not created"
+
 
 def test_get_plans_not_found():
     """
