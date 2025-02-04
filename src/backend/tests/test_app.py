@@ -86,7 +86,7 @@ class FakeCosmos:
 
         class FakePlanAll:
             id = "plan1"
-            
+
             def model_dump(inner_self):
                 return {
                     "id": inner_self.id,
