@@ -83,7 +83,7 @@ class FakeCosmos:
 
     async def get_all_plans(self):
         user_id = self.user_id
-        
+
         class FakePlanAll:
             id = "plan1"
             
