@@ -52,17 +52,14 @@ class FakeContainer:
     def __init__(self, items=None):
         self.items = items if items is not None else []
 
-
     async def create_item(self, body):
         self.items.append(body)
         return body
-
 
     async def upsert_item(self, body):
         self.items = [item for item in self.items if item.get("id") != body.get("id")]
         self.items.append(body)
         return body
-
 
     async def read_item(self, item, partition_key):
         for doc in self.items:
@@ -70,13 +67,11 @@ class FakeContainer:
                 return doc
         raise Exception("Item not found")
 
-
     def query_items(self, query, parameters, **kwargs):
         async def gen():
             for item in self.items:
                 yield item
         return gen()
-
 
     async def delete_item(self, item, partition_key):
         self.items = [doc for doc in self.items if doc.get("id") != item]
@@ -104,6 +99,7 @@ pytestmark = pytest.mark.asyncio
 async def test_initialize(monkeypatch):
     """Test that initialize() creates the container and sets the event."""
     fake_container = FakeContainer()
+
     async def fake_create_container_if_not_exists(id, partition_key):
         return fake_container
     monkeypatch.setattr(
@@ -126,6 +122,7 @@ async def test_add_item_success(cosmos_context):
 
 async def test_add_item_failure(cosmos_context, monkeypatch):
     dummy = DummyModel(id="dummy2", session_id="test_session", data_type="plan", user_id="test_user")
+
     async def fake_create_item(body):
         raise Exception("failure")
     monkeypatch.setattr(cosmos_context._container, "create_item", fake_create_item)
@@ -141,6 +138,7 @@ async def test_update_item_success(cosmos_context):
 
 async def test_update_item_failure(cosmos_context, monkeypatch):
     dummy = DummyModel(id="dummy4", session_id="test_session", data_type="plan", user_id="test_user")
+
     async def fake_upsert_item(body):
         raise Exception("failure")
     monkeypatch.setattr(cosmos_context._container, "upsert_item", fake_upsert_item)
@@ -241,6 +239,7 @@ async def test_delete_items_by_query(cosmos_context, monkeypatch):
     monkeypatch.setattr(cosmos_context._container, "query_items",
                         lambda query, parameters, **kwargs: gen())
     calls = []
+
     async def fake_delete_item(item, partition_key):
         calls.append((item, partition_key))
     monkeypatch.setattr(cosmos_context._container, "delete_item", fake_delete_item)
@@ -255,6 +254,7 @@ async def test_delete_all_messages(cosmos_context, monkeypatch):
     monkeypatch.setattr(cosmos_context._container, "query_items",
                         lambda query, parameters, **kwargs: gen())
     calls = []
+
     async def fake_delete_item(item, partition_key):
         calls.append((item, partition_key))
     monkeypatch.setattr(cosmos_context._container, "delete_item", fake_delete_item)
@@ -349,97 +349,3 @@ async def test_get_all_messages_exception(cosmos_context, monkeypatch):
                         lambda query, parameters, **kwargs: (_ for _ in ()).throw(Exception("fail")))
     messages = await cosmos_context.get_all_messages()
     assert messages == []
-
-
-# --- Test for close and context manager ---
-async def test_close(cosmos_context):
-    await cosmos_context.close()
-
-
-async def test_context_manager(cosmos_context):
-    async with cosmos_context as ctx:
-        assert ctx == cosmos_context
-
-
-async def test_get_all_sessions_failure(cosmos_context, monkeypatch):
-    """Simulate an exception during query_items in get_all_sessions, which should return an empty list."""
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: (_ for _ in ()).throw(Exception("fail")))
-    sessions = await cosmos_context.get_all_sessions()
-    assert sessions == []
-
-
-async def test_get_plan_by_session_not_found(cosmos_context, monkeypatch):
-    """Simulate query_items returning no plans, so get_plan_by_session returns None."""
-    async def empty_gen():
-        if False:
-            yield {}
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: empty_gen())
-    plan = await cosmos_context.get_plan_by_session("nonexistent")
-    assert plan is None
-
-
-async def test_get_all_plans_failure(cosmos_context, monkeypatch):
-    """Simulate exception in query_items when calling get_all_plans; should return empty list."""
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: (_ for _ in ()).throw(Exception("fail")))
-    plans = await cosmos_context.get_all_plans()
-    assert plans == []
-
-
-async def test_get_messages_unrecognized(cosmos_context, monkeypatch):
-    """Test get_messages() when an item has an unrecognized message type so it is skipped."""
-    async def gen():
-        yield {"id": "msg_unknown", "session_id": "test_session", "data_type": "message",
-               "content": {"type": "UnknownType", "content": "ignored"}, "_ts": 50}
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: gen())
-    messages = await cosmos_context.get_messages()
-    # Since the type is unknown, the message should be skipped.
-    assert messages == []
-
-
-async def test_delete_item_failure(cosmos_context, monkeypatch):
-    """Simulate an exception in delete_item so that delete_item() logs and does not propagate."""
-    async def fake_delete_item(item, partition_key):
-        raise Exception("delete failure")
-    monkeypatch.setattr(cosmos_context._container, "delete_item", fake_delete_item)
-    # Calling delete_item should not raise; it catches exception internally.
-    await cosmos_context.delete_item("any", "any")
-
-
-async def test_delete_items_by_query_failure(cosmos_context, monkeypatch):
-    """Simulate an exception in query_items within delete_items_by_query and ensure it is caught."""
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: (_ for _ in ()).throw(Exception("fail")))
-    # delete_items_by_query should catch the exception and not propagate.
-    await cosmos_context.delete_items_by_query("query", [{"name": "param", "value": "val"}])
-
-
-# (The delete_all_messages test already exists for success case)
-async def test_get_all_messages_success(cosmos_context, monkeypatch):
-    async def gen():
-        yield {"id": "msg1", "session_id": "test_session", "data_type": "message", "content": "hello", "_ts": 40}
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: gen())
-    messages = await cosmos_context.get_all_messages()
-    assert len(messages) == 1
-    assert messages[0]["id"] == "msg1"
-
-
-async def test_get_all_messages_exception(cosmos_context, monkeypatch):
-    monkeypatch.setattr(cosmos_context._container, "query_items",
-                        lambda query, parameters, **kwargs: (_ for _ in ()).throw(Exception("fail")))
-    messages = await cosmos_context.get_all_messages()
-    assert messages == []
-
-
-# --- Test for close and context manager ---
-async def test_close(cosmos_context):
-    await cosmos_context.close()
-
-
-async def test_context_manager(cosmos_context):
-    async with cosmos_context as ctx:
-        assert ctx == cosmos_context
