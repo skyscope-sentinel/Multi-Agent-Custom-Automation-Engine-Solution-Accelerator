@@ -3,7 +3,6 @@ import sys
 import pytest
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
-import asyncio
 
 
 # --- MOCK EXTERNAL DEPENDENCIES ---
@@ -56,8 +55,10 @@ class FakeCosmos:
     async def get_plan_by_session(self, session_id: str):
         if session_id == "existing":
             user_id = self.user_id  # capture from the outer instance
+
             class FakePlanBySession:
                 id = "existing_plan_id"
+
                 def model_dump(inner_self):
                     return {
                         "id": inner_self.id,
@@ -82,8 +83,10 @@ class FakeCosmos:
 
     async def get_all_plans(self):
         user_id = self.user_id
+        
         class FakePlanAll:
             id = "plan1"
+            
             def model_dump(inner_self):
                 return {
                     "id": inner_self.id,
@@ -119,6 +122,7 @@ class FakeCosmos:
             "ts": 123456789,
         }]
 
+
 # --- PYTEST FIXTURE TO OVERRIDE DEPENDENCIES ---
 @pytest.fixture(autouse=True)
 def override_dependencies(monkeypatch):
@@ -143,6 +147,7 @@ def override_dependencies(monkeypatch):
 
 # --- TEST CASES ---
 # Note: We remove extra fields (like "user_id") from payloads so that they match the expected schema.
+
 
 def test_input_task_invalid_json():
     invalid_json = "Invalid JSON data"
