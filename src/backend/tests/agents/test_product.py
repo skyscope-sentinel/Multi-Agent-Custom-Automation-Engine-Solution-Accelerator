@@ -2,7 +2,6 @@ import os
 import sys
 from unittest.mock import MagicMock
 
-# --- Fake missing Azure modules ---
 sys.modules["azure.monitor.events"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
@@ -15,6 +14,12 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
 # Set required environment variables before importing modules that depend on them.
+import pytest
+
+# Mock Azure SDK dependencies
+sys.modules["azure.monitor.events.extension"] = MagicMock()
+
+# Set up environment variables
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
 os.environ["COSMOSDB_KEY"] = "mock-key"
 os.environ["COSMOSDB_DATABASE"] = "mock-database"
@@ -23,13 +28,12 @@ os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"] = "mock-deployment-name"
 os.environ["AZURE_OPENAI_API_VERSION"] = "2023-01-01"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 
-# Import product functions and classes.
+
+# Import the required functions for testing
 from src.backend.agents.product import (
     add_mobile_extras_pack,
     get_product_info,
-    get_billing_date,
     update_inventory,
-    add_new_product,
     schedule_product_launch,
     analyze_sales_data,
     get_customer_feedback,
@@ -87,13 +91,16 @@ from autogen_core.components.tools import FunctionTool, Tool
 from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
 from src.backend.agents.base_agent import BaseAgent
 
-# --- Tests for Product Functions ---
+)
 
+
+# Parameterized tests for repetitive cases
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "function, args, expected_substrings",
     [
         (add_mobile_extras_pack, ("Roaming Pack", "2025-01-01"), ["Roaming Pack", "2025-01-01", "AGENT SUMMARY:"]),
+        (add_mobile_extras_pack, ("Roaming Pack", "2025-01-01"), ["Roaming Pack", "2025-01-01"]),
         (get_product_info, (), ["Simulated Phone Plans", "Plan A"]),
         (update_inventory, ("Product A", 50), ["Inventory for", "Product A"]),
         (schedule_product_launch, ("New Product", "2025-02-01"), ["New Product", "2025-02-01"]),
@@ -106,6 +113,12 @@ from src.backend.agents.base_agent import BaseAgent
         (handle_product_recall, ("Product A", "Defective batch"), ["Product recall for", "Defective batch"]),
         (set_product_discount, ("Product A", 15.0), ["Discount for", "15.0%"]),
         (manage_supply_chain, ("Product A", "Supplier X"), ["Supply chain for", "Supplier X"]),
+        (handle_product_recall, ("Product A", "Defective batch"), ["Product recall for", "Defective batch"]),
+        (set_product_discount, ("Product A", 15.0), ["Discount for", "15.0%"]),
+        (manage_supply_chain, ("Product A", "Supplier X"), ["Supply chain for", "Supplier X"]),
+        (check_inventory, ("Product A",), ["Inventory status for", "Product A"]),
+        (update_product_price, ("Product A", 99.99), ["Price for", "$99.99"]),
+        (provide_product_recommendations, ("High Performance",), ["Product recommendations", "High Performance"]),
         (forecast_product_demand, ("Product A", "Next Month"), ["Demand for", "Next Month"]),
         (handle_product_complaints, ("Product A", "Complaint about quality"), ["Complaint for", "Product A"]),
         (generate_product_report, ("Product A", "Sales"), ["Sales report for", "Product A"]),
@@ -172,3 +185,9 @@ def test_get_product_tools():
     assert any(isinstance(tool, FunctionTool) for tool in tools)
     names = [tool.name for tool in tools]
     assert "add_mobile_extras_pack" in names or "get_product_info" in names
+
+# Specific test for monitoring market trends
+@pytest.mark.asyncio
+async def test_monitor_market_trends():
+    result = await monitor_market_trends()
+    assert "Market trends monitored" in result
