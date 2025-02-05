@@ -30,7 +30,6 @@ with patch("azure.monitor.opentelemetry.configure_azure_monitor", MagicMock()):
 client = TestClient(app)
 
 
-# --- FAKE CLASSES AND FUNCTIONS ---
 class FakePlan:
     id = "fake_plan_id"
     summary = "Fake plan summary"
@@ -123,7 +122,6 @@ class FakeCosmos:
         }]
 
 
-# --- PYTEST FIXTURE TO OVERRIDE DEPENDENCIES ---
 @pytest.fixture(autouse=True)
 def override_dependencies(monkeypatch):
     # Override authentication so that the headers always yield a valid user.
@@ -131,7 +129,7 @@ def override_dependencies(monkeypatch):
         "src.backend.auth.auth_utils.get_authenticated_user_details",
         lambda headers: {"user_principal_id": "mock-user-id"},
     )
-    # Override the agent tools retrieval to return a tool with the expected values.
+    
     monkeypatch.setattr(
         "src.backend.utils.retrieve_all_agent_tools",
         lambda: [{
@@ -144,9 +142,6 @@ def override_dependencies(monkeypatch):
     monkeypatch.setattr("src.backend.app.initialize_runtime_and_context", fake_initialize_runtime_and_context)
     monkeypatch.setattr("src.backend.app.CosmosBufferedChatCompletionContext", FakeCosmos)
     monkeypatch.setattr("src.backend.app.track_event_if_configured", lambda event, props: None)
-
-# --- TEST CASES ---
-# Note: We remove extra fields (like "user_id") from payloads so that they match the expected schema.
 
 
 def test_input_task_invalid_json():
