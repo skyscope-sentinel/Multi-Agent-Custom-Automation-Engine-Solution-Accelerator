@@ -2,8 +2,6 @@
 import os
 import sys
 import json
-import uuid
-import logging
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -26,18 +24,18 @@ track_event_if_configured = lambda event, props: None
 
 # --- Patch AgentInstantiationContext to bypass instantiation errors ---
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
+
+
 @pytest.fixture(autouse=True)
 def patch_instantiation_context(monkeypatch):
     monkeypatch.setattr(AgentInstantiationContext, "current_runtime", lambda: "dummy_runtime")
     monkeypatch.setattr(AgentInstantiationContext, "current_agent_id", lambda: "dummy_agent_id")
 
 # --- Imports from the module under test ---
-from autogen_core.components.models import AzureOpenAIChatCompletionClient, LLMMessage, UserMessage
+from autogen_core.components.models import UserMessage
 from autogen_core.base import MessageContext
 from src.backend.agents.planner import PlannerAgent
 from src.backend.models.messages import (
-    AgentMessage,
-    HumanClarification,
     BAgentType,
     InputTask,
     Plan,
@@ -105,6 +103,8 @@ class FakeMemory:
         return [step]
 
 # --- Dummy model client simulating LLM responses ---
+
+
 class DummyModelClient:
     async def create(self, messages, extra_create_args=None):
         # Simulate a valid structured response based on the expected schema.
@@ -119,6 +119,8 @@ class DummyModelClient:
         return dummy_resp
 
 # --- Fixture for PlannerAgent ---
+
+
 @pytest.fixture
 def planner_agent():
     dummy_model_client = DummyModelClient()
@@ -138,6 +140,7 @@ def planner_agent():
     return agent, fake_memory
 
 # ------------------- Tests for handle_input_task -------------------
+
 
 @pytest.mark.asyncio
 async def test_handle_input_task_success(planner_agent):
@@ -174,6 +177,7 @@ async def test_handle_input_task_success(planner_agent):
     assert result.id == "plan_success"
     fake_memory.add_item.assert_called()
 
+
 @pytest.mark.asyncio
 async def test_handle_input_task_no_steps(planner_agent):
     """Test that _create_structured_plan raising ValueError causes exception."""
@@ -186,6 +190,7 @@ async def test_handle_input_task_no_steps(planner_agent):
         await agent.handle_input_task(input_task, ctx)
 
 # ------------------- Tests for _generate_instruction -------------------
+
 
 def test_generate_instruction_contains_content(planner_agent):
     agent, _ = planner_agent
@@ -200,6 +205,7 @@ def test_generate_instruction_contains_content(planner_agent):
             assert tool in instruction
 
 # ------------------- Tests for _create_structured_plan -------------------
+
 
 @pytest.mark.asyncio
 async def test_create_structured_plan_success(planner_agent):

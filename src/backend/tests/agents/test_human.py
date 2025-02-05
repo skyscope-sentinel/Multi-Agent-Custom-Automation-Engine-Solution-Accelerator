@@ -34,14 +34,18 @@ def patch_instantiation_context(monkeypatch):
     monkeypatch.setattr(AgentInstantiationContext, "current_runtime", lambda: dummy_runtime)
     monkeypatch.setattr(AgentInstantiationContext, "current_agent_id", lambda: dummy_agent_id)
 
+
 # --- Patch ApprovalRequest so that required fields get default values ---
 from src.backend.models.messages import ApprovalRequest as RealApprovalRequest, Plan
+
+
 class DummyApprovalRequest(RealApprovalRequest):
     def __init__(self, **data):
         # Provide default values for missing fields.
         data.setdefault("action", "dummy_action")
         data.setdefault("agent", "dummy_agent")
         super().__init__(**data)
+
 
 @pytest.fixture(autouse=True)
 def patch_approval_request(monkeypatch):
@@ -50,7 +54,8 @@ def patch_approval_request(monkeypatch):
 # Now import the module under test.
 from autogen_core.base import MessageContext, AgentId
 from src.backend.agents.human import HumanAgent
-from src.backend.models.messages import HumanFeedback, Step, StepStatus, AgentMessage, ApprovalRequest, BAgentType
+from src.backend.models.messages import HumanFeedback, Step, StepStatus, BAgentType
+
 
 # Define a minimal dummy MessageContext implementation.
 class DummyMessageContext(MessageContext):
@@ -59,6 +64,7 @@ class DummyMessageContext(MessageContext):
         self.topic_id = topic_id
         self.is_rpc = is_rpc
         self.cancellation_token = cancellation_token
+
 
 # Define a fake memory implementation.
 class FakeMemory:
@@ -92,6 +98,7 @@ class FakeMemory:
             human_clarification_response=None,
         )
 
+
 # Fixture to create a HumanAgent instance with fake memory.
 @pytest.fixture
 def human_agent():
@@ -101,8 +108,8 @@ def human_agent():
     agent = HumanAgent(memory=fake_memory, user_id=user_id, group_chat_manager_id=group_chat_manager_id)
     return agent, fake_memory
 
-# ------------------- Existing Tests -------------------
 
+# ------------------- Existing Tests -------------------
 def test_human_agent_init():
     fake_memory = MagicMock()
     user_id = "test_user"
@@ -111,6 +118,7 @@ def test_human_agent_init():
     assert agent.user_id == user_id
     assert agent.group_chat_manager_id == group_chat_manager_id
     assert agent._memory == fake_memory
+
 
 @pytest.mark.asyncio
 async def test_handle_step_feedback_no_step_found(human_agent):
@@ -168,6 +176,7 @@ async def test_handle_step_feedback_update_exception(human_agent):
     ctx = DummyMessageContext()
     with pytest.raises(Exception, match="Update failed"):
         await agent.handle_step_feedback(feedback, ctx)
+
 
 @pytest.mark.asyncio
 async def test_handle_step_feedback_add_item_exception(human_agent):

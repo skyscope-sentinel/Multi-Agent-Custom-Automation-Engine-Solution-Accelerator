@@ -6,8 +6,7 @@ from unittest.mock import MagicMock
 sys.modules["azure.monitor.events"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
-import time
-import asyncio
+
 import pytest
 from datetime import datetime
 
@@ -42,7 +41,6 @@ from src.backend.agents.product import (
     manage_supply_chain,
     forecast_product_demand,
     handle_product_complaints,
-    monitor_market_trends,
     generate_product_report,
     develop_new_product_ideas,
     optimize_product_page,
@@ -80,14 +78,8 @@ from src.backend.agents.product import (
     get_product_tools,
 )
 
-from src.backend.agents.product import ProductAgent
-from autogen_core.components.models import AzureOpenAIChatCompletionClient
-from autogen_core.base import AgentId
-from autogen_core.components.tools import FunctionTool, Tool
-from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
-from src.backend.agents.base_agent import BaseAgent
+from autogen_core.components.tools import FunctionTool
 
-# --- Tests for Product Functions ---
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
@@ -119,6 +111,7 @@ async def test_product_functions(function, args, expected_substrings):
     result = await function(*args)
     for substring in expected_substrings:
         assert substring in result
+
 
 # --- Extra parameterized tests for remaining functions ---
 @pytest.mark.asyncio
@@ -168,7 +161,6 @@ async def test_product_functions_extra(function, args, expected_substrings):
 def test_get_product_tools():
     tools = get_product_tools()
     assert isinstance(tools, list)
-    from autogen_core.components.tools import FunctionTool
     assert any(isinstance(tool, FunctionTool) for tool in tools)
     names = [tool.name for tool in tools]
     assert "add_mobile_extras_pack" in names or "get_product_info" in names
