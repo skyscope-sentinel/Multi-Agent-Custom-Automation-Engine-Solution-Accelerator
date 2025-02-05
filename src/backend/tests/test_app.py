@@ -129,7 +129,7 @@ def override_dependencies(monkeypatch):
         "src.backend.auth.auth_utils.get_authenticated_user_details",
         lambda headers: {"user_principal_id": "mock-user-id"},
     )
-      
+          
     monkeypatch.setattr(
         "src.backend.utils.retrieve_all_agent_tools",
         lambda: [{
