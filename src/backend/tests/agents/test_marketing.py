@@ -20,7 +20,6 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 # Import the marketing functions and MarketingAgent from the module.
-from autogen_core.components.tools import FunctionTool
 from src.backend.agents.marketing import (
     create_marketing_campaign,
     analyze_market_trends,

@@ -3,7 +3,7 @@ import os
 import sys
 import json
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 # --- Setup environment and module search path ---
 os.environ["COSMOSDB_ENDPOINT"] = "https://mock-endpoint"
@@ -18,11 +18,7 @@ sys.modules["azure.monitor.events.extension"] = MagicMock()  # Patch missing azu
 # Ensure the project root is in sys.path.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
-# --- Patch event tracking to be a no-op ---
 from src.backend.event_utils import track_event_if_configured
-track_event_if_configured = lambda event, props: None
-
-# --- Patch AgentInstantiationContext to bypass instantiation errors ---
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
 
 

@@ -19,7 +19,6 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 
-from src.backend.event_utils import track_event_if_configured
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
 
 
@@ -28,6 +27,7 @@ def dummy_agent_instantiation_context():
     token = AgentInstantiationContext.AGENT_INSTANTIATION_CONTEXT_VAR.set(("dummy_runtime", "dummy_agent_id"))
     yield
     AgentInstantiationContext.AGENT_INSTANTIATION_CONTEXT_VAR.reset(token)
+
 
 # --- Import production classes ---
 from src.backend.agents.group_chat_manager import GroupChatManager
@@ -43,7 +43,7 @@ from src.backend.models.messages import (
     BAgentType,
 )
 from autogen_core.base import AgentId, MessageContext
-from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
+
 
 # --- Define a DummyMessageContext that supplies required parameters ---
 class DummyMessageContext(MessageContext):
@@ -75,7 +75,6 @@ class FakeMemory:
             human_clarification_response="Plan feedback",
         )
 
-
     async def get_steps_by_plan(self, plan_id: str) -> list:
         step1 = Step.model_construct(
             id="step1",
@@ -106,9 +105,6 @@ class FakeMemory:
 
     async def update_plan(self, plan: Plan):
         pass
-
-    async def update_step(self, step: Step):
-        self.updated_steps.append(step)
 
 
 # --- Fake send_message for GroupChatManager ---
@@ -148,11 +144,12 @@ def group_chat_manager():
     manager.send_message = AsyncMock(side_effect=fake_send_message)
     return manager, fake_memory
 
+
 # --- To simulate a missing agent in a step, define a dummy subclass ---
 class DummyStepMissingAgent(Step):
     @property
     def agent(self):
-        return ""  
+        return "" 
 
 
 # ---------------------- Tests ----------------------
@@ -346,12 +343,13 @@ async def test_execute_step_human_agent(group_chat_manager):
 @pytest.mark.asyncio
 async def test_execute_step_missing_agent_raises(group_chat_manager):
     manager, fake_memory = group_chat_manager
+
     # Create a dummy step using a subclass that forces agent to be an empty string.
     class DummyStepMissingAgent(Step):
         @property
         def agent(self):
             return ""
-    step = DummyStepMissingAgent.model_construct(
+    DummyStepMissingAgent.model_construct(
         id="step_missing",
         plan_id="plan1",
         action="Do something",

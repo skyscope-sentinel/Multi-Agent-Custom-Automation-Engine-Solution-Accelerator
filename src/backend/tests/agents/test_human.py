@@ -20,7 +20,6 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 # Patch azure module so that event_utils imports correctly.
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
-from src.backend.event_utils import track_event_if_configured
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
 dummy_runtime = MagicMock()
 dummy_agent_id = "dummy_agent_id"

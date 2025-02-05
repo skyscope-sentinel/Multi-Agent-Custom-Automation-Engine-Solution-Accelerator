@@ -1,7 +1,6 @@
 import os
 import sys
 import pytest
-from datetime import datetime
 from unittest.mock import MagicMock
 
 # --- Fake missing Azure modules ---
@@ -137,6 +136,7 @@ async def test_procurement_functions(func, args, expected):
         assert expected in result
     else:
         assert result == expected
+
 
 # --- Test get_procurement_tools ---
 def test_get_procurement_tools():
