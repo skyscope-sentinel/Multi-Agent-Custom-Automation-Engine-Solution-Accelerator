@@ -31,6 +31,7 @@ def patch_instantiation_context(monkeypatch):
     monkeypatch.setattr(AgentInstantiationContext, "current_runtime", lambda: "dummy_runtime")
     monkeypatch.setattr(AgentInstantiationContext, "current_agent_id", lambda: "dummy_agent_id")
 
+
 # --- Imports from the module under test ---
 from autogen_core.components.models import UserMessage
 from autogen_core.base import MessageContext
@@ -45,7 +46,7 @@ from src.backend.models.messages import (
     HumanFeedbackStatus,
 )
 
-# --- Define a Dummy MessageContext for testing ---
+
 class DummyMessageContext(MessageContext):
     def __init__(self, sender="dummy_sender", topic_id="dummy_topic", is_rpc=False, cancellation_token=None):
         self.sender = sender
@@ -53,7 +54,7 @@ class DummyMessageContext(MessageContext):
         self.is_rpc = is_rpc
         self.cancellation_token = cancellation_token
 
-# --- Fake memory implementation ---
+
 class FakeMemory:
     def __init__(self):
         self.added_plans = []

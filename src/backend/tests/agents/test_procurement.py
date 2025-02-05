@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-import asyncio
 import pytest
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -75,13 +73,6 @@ from src.backend.agents.procurement import (
     get_procurement_tools,
 )
 
-# Import ProcurementAgent and its dependencies
-from src.backend.agents.procurement import ProcurementAgent
-from autogen_core.components.models import AzureOpenAIChatCompletionClient
-from autogen_core.base import AgentId
-from autogen_core.components.tools import FunctionTool, Tool
-from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContext
-from src.backend.agents.base_agent import BaseAgent
 
 # --- Parameterized tests for Procurement functions ---
 @pytest.mark.asyncio

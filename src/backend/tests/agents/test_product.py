@@ -2,13 +2,12 @@ import os
 import sys
 from unittest.mock import MagicMock
 
-# --- Fake missing Azure modules ---
 sys.modules["azure.monitor.events"] = MagicMock()
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 
 import pytest
-from datetime import datetime
+
 
 # Adjust sys.path so that the project root is found.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
@@ -45,7 +44,6 @@ from src.backend.agents.product import (
     develop_new_product_ideas,
     optimize_product_page,
     track_product_shipment,
-    evaluate_product_performance,
     coordinate_with_marketing,
     review_product_quality,
     collaborate_with_tech_team,

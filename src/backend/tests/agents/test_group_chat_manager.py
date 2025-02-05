@@ -20,7 +20,8 @@ sys.modules["azure.monitor.events.extension"] = MagicMock()
 
 # Patch track_event_if_configured to a no-op.
 from src.backend.event_utils import track_event_if_configured
-track_event_if_configured = lambda event, props: None
+def track_event_if_configured(event, props):
+    pass  # No-op function
 
 # --- Bypass AgentInstantiationContext errors ---
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
@@ -353,4 +354,3 @@ async def test_execute_step_missing_agent_raises(group_chat_manager):
         human_feedback="",
         human_approval_status=HumanFeedbackStatus.requested,
     )
-      
