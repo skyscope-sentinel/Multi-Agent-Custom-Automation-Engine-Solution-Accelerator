@@ -62,12 +62,14 @@ class DummyModelClient(AzureOpenAIChatCompletionClient):
         dummy_resp.content = json.dumps(response_dict)
         return dummy_resp
 
+
 class DummyModelClientError(AzureOpenAIChatCompletionClient):
     def __init__(self, **kwargs):
         pass
 
     async def create(self, messages, extra_create_args=None):
         raise Exception("LLM error")
+
 
 class DummyModelClientInvalidJSON(AzureOpenAIChatCompletionClient):
     def __init__(self, **kwargs):
@@ -77,6 +79,7 @@ class DummyModelClientInvalidJSON(AzureOpenAIChatCompletionClient):
         dummy_resp = MagicMock()
         dummy_resp.content = "invalid json"
         return dummy_resp
+
 
 # Fixture: a dummy Step for testing.
 @pytest.fixture
@@ -97,8 +100,8 @@ def dummy_step():
     step.__pydantic_extra__ = {}
     return step
 
-# Tests for extract_and_update_transition_states
 
+# Tests for extract_and_update_transition_states
 @pytest.mark.asyncio
 async def test_extract_and_update_transition_states_success(dummy_step):
     """
@@ -167,10 +170,10 @@ def test_dummy_json_parsing():
     """
     json_str = '{"identifiedTargetState": "TestState", "identifiedTargetTransition": "TestTransition"}'
     data = json.loads(json_str)
+
     class DummySchema(BaseModel):
         identifiedTargetState: str
         identifiedTargetTransition: str
     schema = DummySchema(**data)
     assert schema.identifiedTargetState == "TestState"
     assert schema.identifiedTargetTransition == "TestTransition"
-    
