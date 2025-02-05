@@ -18,7 +18,6 @@ sys.modules["azure.monitor.events.extension"] = MagicMock()  # Patch missing azu
 # Ensure the project root is in sys.path.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
-from src.backend.event_utils import track_event_if_configured
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
 
 

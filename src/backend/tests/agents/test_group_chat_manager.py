@@ -149,7 +149,7 @@ def group_chat_manager():
 class DummyStepMissingAgent(Step):
     @property
     def agent(self):
-        return "" 
+        return ""
 
 
 # ---------------------- Tests ----------------------
