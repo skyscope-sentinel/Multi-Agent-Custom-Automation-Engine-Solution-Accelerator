@@ -20,17 +20,11 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 # Patch azure module so that event_utils imports correctly.
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
-# Patch track_event_if_configured to a no-op.
 from src.backend.event_utils import track_event_if_configured
-
-# Correct the lambda to a function definition to avoid E731 and F811 errors
-def track_event_if_configured(event, props):
-    pass
-
-# --- Patch AgentInstantiationContext so that instantiation errors are bypassed ---
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
 dummy_runtime = MagicMock()
 dummy_agent_id = "dummy_agent_id"
+
 
 @pytest.fixture(autouse=True)
 def patch_instantiation_context(monkeypatch):
@@ -41,6 +35,7 @@ def patch_instantiation_context(monkeypatch):
 # --- Patch ApprovalRequest so that required fields get default values ---
 from src.backend.models.messages import ApprovalRequest as RealApprovalRequest, Plan
 
+
 class DummyApprovalRequest(RealApprovalRequest):
     def __init__(self, **data):
         # Provide default values for missing fields.
@@ -48,9 +43,11 @@ class DummyApprovalRequest(RealApprovalRequest):
         data.setdefault("agent", "dummy_agent")
         super().__init__(**data)
 
+
 @pytest.fixture(autouse=True)
 def patch_approval_request(monkeypatch):
     monkeypatch.setattr("src.backend.agents.human.ApprovalRequest", DummyApprovalRequest)
+
 
 # Now import the module under test.
 from autogen_core.base import MessageContext, AgentId

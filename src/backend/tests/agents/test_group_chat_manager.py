@@ -1,7 +1,7 @@
 import os
 import sys
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 # Adjust sys.path so that the project root is found.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
@@ -18,13 +18,11 @@ os.environ["AZURE_OPENAI_ENDPOINT"] = "https://mock-openai-endpoint"
 # Patch missing azure module so that event_utils imports without error.
 sys.modules["azure.monitor.events.extension"] = MagicMock()
 
-# Patch track_event_if_configured to a no-op.
-from src.backend.event_utils import track_event_if_configured
-def track_event_if_configured(event, props):
-    pass  # No-op function
 
-# --- Bypass AgentInstantiationContext errors ---
+from src.backend.event_utils import track_event_if_configured
 from autogen_core.base._agent_instantiation import AgentInstantiationContext
+
+
 @pytest.fixture(autouse=True)
 def dummy_agent_instantiation_context():
     token = AgentInstantiationContext.AGENT_INSTANTIATION_CONTEXT_VAR.set(("dummy_runtime", "dummy_agent_id"))
@@ -34,7 +32,6 @@ def dummy_agent_instantiation_context():
 # --- Import production classes ---
 from src.backend.agents.group_chat_manager import GroupChatManager
 from src.backend.models.messages import (
-    ActionRequest,
     AgentMessage,
     HumanFeedback,
     InputTask,
@@ -52,6 +49,7 @@ from src.backend.context.cosmos_memory import CosmosBufferedChatCompletionContex
 class DummyMessageContext(MessageContext):
     def __init__(self):
         super().__init__(sender="dummy_sender", topic_id="dummy_topic", is_rpc=False, cancellation_token=None)
+
 
 # --- Fake Memory implementation ---
 class FakeMemory:
@@ -76,6 +74,7 @@ class FakeMemory:
             summary="Test summary",
             human_clarification_response="Plan feedback",
         )
+
 
     async def get_steps_by_plan(self, plan_id: str) -> list:
         step1 = Step.model_construct(
@@ -111,6 +110,7 @@ class FakeMemory:
     async def update_step(self, step: Step):
         self.updated_steps.append(step)
 
+
 # --- Fake send_message for GroupChatManager ---
 async def fake_send_message(message, agent_id):
     return Plan.model_construct(
@@ -123,6 +123,7 @@ async def fake_send_message(message, agent_id):
         summary="Test summary",
         human_clarification_response="",
     )
+
 
 # --- Fixture to create a GroupChatManager instance ---
 @pytest.fixture
@@ -153,6 +154,7 @@ class DummyStepMissingAgent(Step):
     def agent(self):
         return ""  
 
+
 # ---------------------- Tests ----------------------
 
 @pytest.mark.asyncio
@@ -165,6 +167,7 @@ async def test_handle_input_task(group_chat_manager):
     # Verify an AgentMessage was added with the input description.
     assert any("Test input description" in item.content for item in fake_memory.added_items)
     assert plan.id == "plan1"
+
 
 @pytest.mark.asyncio
 async def test_handle_human_approval_feedback_specific_step(group_chat_manager):
@@ -197,6 +200,7 @@ async def test_handle_human_approval_feedback_specific_step(group_chat_manager):
     await manager.handle_human_approval_feedback(feedback, DummyMessageContext())
     manager._update_step_status.assert_called_once()
     manager._execute_step.assert_called_once_with("sess1", step)
+
 
 @pytest.mark.asyncio
 async def test_handle_human_approval_feedback_all_steps(group_chat_manager):
@@ -242,6 +246,7 @@ async def test_handle_human_approval_feedback_all_steps(group_chat_manager):
     assert manager._update_step_status.call_count == 2
     manager._execute_step.assert_not_called()
 
+
 @pytest.mark.asyncio
 async def test_update_step_status(group_chat_manager):
     manager, fake_memory = group_chat_manager
@@ -261,6 +266,7 @@ async def test_update_step_status(group_chat_manager):
     assert step.status == StepStatus.completed
     assert step.human_feedback == "Positive feedback"
     fake_memory.update_step.assert_called_once_with(step)
+
 
 @pytest.mark.asyncio
 async def test_execute_step_non_human(group_chat_manager):
@@ -302,6 +308,7 @@ async def test_execute_step_non_human(group_chat_manager):
     fake_memory.update_step.assert_called()
     manager.send_message.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_execute_step_human_agent(group_chat_manager):
     manager, fake_memory = group_chat_manager
@@ -333,6 +340,7 @@ async def test_execute_step_human_agent(group_chat_manager):
     # For human agent, _execute_step should mark the step as complete and not call send_message.
     assert step.status == StepStatus.completed
     manager.send_message.assert_not_called()
+
 
 # --- Test for missing agent error in _execute_step ---
 @pytest.mark.asyncio
