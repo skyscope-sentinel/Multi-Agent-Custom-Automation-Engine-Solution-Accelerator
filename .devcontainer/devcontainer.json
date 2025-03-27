@@ -7,7 +7,7 @@
         "ghcr.io/rchaganti/vsc-devcontainer-features/azurebicep:1.0.5": {}
     },
 
-    "postCreateCommand": "sudo chmod +x .devcontainer/setupEnv.sh && ./.devcontainer/setupEnv.sh",
+   //"postCreateCommand": "sudo chmod +x .devcontainer/setupEnv.sh && ./.devcontainer/setupEnv.sh",
     
     "customizations": {
         "vscode": {
@@ -23,7 +23,7 @@
             ]
         }
     },
-    
+    "postStartCommand": "git pull origin main && python3 -m pip install -r ./src/frontend/requirements.txt && python3 -m pip install -r ./src/backend/requirements.txt - r sudo chmod +x .devcontainer/setupEnv.sh && ./.devcontainer/setupEnv.sh",
     "remoteUser": "vscode",
     "hostRequirements": {
         "memory": "8gb"
