@@ -8,14 +8,14 @@ services:
         project: src/backend
         host: containerapp
         language: python
-        docker:
-            path: Dockerfile
+        # docker:
+        #     path: Dockerfile
     frontend:
         project: src/frontend
         host: containerapp
         language: python
-        docker:
-            path: Dockerfile
+        # docker:
+        #     path: Dockerfile
 deployment:
   mode: Incremental
   template: ./infra/main.bicep 
