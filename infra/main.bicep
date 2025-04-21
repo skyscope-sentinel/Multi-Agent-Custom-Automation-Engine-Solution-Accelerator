@@ -4,10 +4,8 @@ param location string = 'EastUS2' //Fixed for model availability, change back to
 @description('Location for OpenAI resources.')
 param azureOpenAILocation string = 'japaneast' //Fixed for model availability
 
-
-
 @description('A prefix to add to the start of all resource names. Note: A "unique" suffix will also be added')
-param prefix string = 'macaeo'
+param prefix string = take('macaeo-${uniqueString(resourceGroup().id)}', 10)
 
 @description('Tags to apply to all deployed resources')
 param tags object = {}
@@ -32,10 +30,9 @@ param resourceSize {
 }
 param capacity int = 1
 
-
 var modelVersion = '2024-08-06'
 var aiServicesName = '${prefix}-aiservices'
-var deploymentType  = 'GlobalStandard'
+var deploymentType = 'GlobalStandard'
 var gptModelVersion = 'gpt-4o'
 var appVersion = 'latest'
 var resgistryName = 'biabcontainerreg'
@@ -70,7 +67,6 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02-preview' = {
   }
 }
 
-
 var aiModelDeployments = [
   {
     name: gptModelVersion
@@ -99,29 +95,31 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = 
   }
 }
 
-resource aiServicesDeployments 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [for aiModeldeployment in aiModelDeployments: {
-  parent: aiServices //aiServices_m
-  name: aiModeldeployment.name
-  properties: {
-    model: {
-      format: 'OpenAI'
-      name: aiModeldeployment.model
-      version: aiModeldeployment.version
+resource aiServicesDeployments 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [
+  for aiModeldeployment in aiModelDeployments: {
+    parent: aiServices //aiServices_m
+    name: aiModeldeployment.name
+    properties: {
+      model: {
+        format: 'OpenAI'
+        name: aiModeldeployment.model
+        version: aiModeldeployment.version
+      }
+      raiPolicyName: aiModeldeployment.raiPolicyName
     }
-    raiPolicyName: aiModeldeployment.raiPolicyName
+    sku: {
+      name: aiModeldeployment.sku.name
+      capacity: aiModeldeployment.sku.capacity
+    }
   }
-  sku:{
-    name: aiModeldeployment.sku.name
-    capacity: aiModeldeployment.sku.capacity
-  }
-}]
+]
 
 module kvault 'deploy_keyvault.bicep' = {
   name: 'deploy_keyvault'
   params: {
     solutionName: prefix
     solutionLocation: location
-    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
+    managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -134,7 +132,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     keyVaultName: kvault.outputs.keyvaultName
     gptModelName: gptModelVersion
     gptModelVersion: gptModelVersion
-    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
+    managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
     aiServicesEndpoint: aiServices.properties.endpoint
     aiServicesKey: aiServices.listKeys().key1
     aiServicesId: aiServices.id
@@ -197,7 +195,7 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
         locationName: location
       }
     ]
-    capabilities: [ { name: 'EnableServerless' } ]
+    capabilities: [{ name: 'EnableServerless' }]
   }
 
   resource contributorRoleDefinition 'sqlRoleDefinitions' existing = {
@@ -232,13 +230,10 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
 }
 // Define existing ACR resource
 
-
 resource pullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' = {
   name: format(uniqueNameFormat, 'containerapp-pull')
   location: location
 }
-
-
 
 resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
   name: format(uniqueNameFormat, 'containerapp')
@@ -358,10 +353,8 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         }
       ]
     }
-
   }
-
-  }
+}
 resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
   name: format(uniqueNameFormat, 'frontend-plan')
   location: location
@@ -374,7 +367,7 @@ resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2021-02-01' = {
   properties: {
     reserved: true
   }
-  kind: 'linux'  // Add this line to support Linux containers
+  kind: 'linux' // Add this line to support Linux containers
 }
 
 resource frontendAppService 'Microsoft.Web/sites@2021-02-01' = {
@@ -416,7 +409,7 @@ resource frontendAppService 'Microsoft.Web/sites@2021-02-01' = {
   }
 }
 
-var cosmosAssignCli  = 'az cosmosdb sql role assignment create --resource-group "${resourceGroup().name}" --account-name "${cosmos.name}" --role-definition-id "${cosmos::contributorRoleDefinition.id}" --scope "${cosmos.id}" --principal-id "${containerApp.identity.principalId}"'
+var cosmosAssignCli = 'az cosmosdb sql role assignment create --resource-group "${resourceGroup().name}" --account-name "${cosmos.name}" --role-definition-id "${cosmos::contributorRoleDefinition.id}" --scope "${cosmos.id}" --principal-id "${containerApp.identity.principalId}"'
 
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
   name: 'deploy_managed_identity'
