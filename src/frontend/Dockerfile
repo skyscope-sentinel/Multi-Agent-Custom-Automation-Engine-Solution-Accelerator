@@ -1,4 +1,4 @@
-FROM python:3.11-slim AS frontend
+FROM python:3.13-slim AS frontend
 WORKDIR /frontend
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
