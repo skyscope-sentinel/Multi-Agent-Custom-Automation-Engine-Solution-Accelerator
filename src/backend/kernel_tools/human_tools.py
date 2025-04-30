@@ -7,7 +7,8 @@ formatting_instructions = "Instructions: returning the output of this function c
 
 
 class HumanTools:
-    # Define Human tools (functions)
+    """Define Human tools (functions)"""
+
     @staticmethod
     @kernel_function(
         description="Parse and process HumanFeedback JSON to update the step status and record feedback."

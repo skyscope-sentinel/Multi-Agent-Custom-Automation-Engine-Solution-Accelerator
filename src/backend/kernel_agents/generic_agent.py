@@ -2,12 +2,11 @@ import logging
 from typing import List, Optional
 
 import semantic_kernel as sk
-from semantic_kernel.functions import KernelFunction
-
-from kernel_agents.agent_base import BaseAgent
 from context.cosmos_memory_kernel import CosmosMemoryContext
+from kernel_agents.agent_base import BaseAgent
+from kernel_tools.generic_tools import GenericTools
 from models.messages_kernel import AgentType
-from src.backend.kernel_tools.generic_tools import GenericTools
+from semantic_kernel.functions import KernelFunction
 
 
 class GenericAgent(BaseAgent):
@@ -42,27 +41,15 @@ class GenericAgent(BaseAgent):
         """
         # Load configuration if tools not provided
         if tools is None:
-            # Get tools directly from GenericTools class
-            tools_dict = GenericTools.get_all_kernel_functions()
-            logging.info(
-                f"GenericAgent: Got tools_dict with {len(tools_dict)} functions: {list(tools_dict.keys())}"
-            )
-
-            tools = [KernelFunction.from_method(func) for func in tools_dict.values()]
-            logging.info(
-                f"GenericAgent: Created {len(tools)} KernelFunctions from tools_dict"
-            )
-
-            # Load the generic tools configuration for system message
-            config = self.load_tools_config("generic", config_path)
+            tools = [GenericTools]
 
             # Use system message from config if not explicitly provided
             if not system_message:
-                system_message = config.get(
-                    "system_message",
-                    "You are a generic agent. You are used to handle generic tasks that a general Large Language Model can assist with. "
-                    "You are being called as a fallback, when no other agents are able to use their specialised functions in order to solve "
-                    "the user's task. Summarize back to the user what was done.",
+                system_message = (
+                    "system_message"
+                    + "You are a generic agent. You are used to handle generic tasks that a general Large Language Model can assist with. "
+                    + "You are being called as a fallback, when no other agents are able to use their specialized functions in order to solve "
+                    + "the user's task. Summarize back to the user what was done.",
                 )
 
             # Use agent name from config if available

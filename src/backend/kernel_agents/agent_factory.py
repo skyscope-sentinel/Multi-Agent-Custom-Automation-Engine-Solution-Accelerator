@@ -1,36 +1,34 @@
 """Factory for creating agents in the Multi-Agent Custom Automation Engine."""
 
-import logging
-from typing import Dict, List, Callable, Any, Optional, Type
-from types import SimpleNamespace
-from semantic_kernel import Kernel
-from semantic_kernel.functions import KernelFunction
-from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
 import inspect
-
-from kernel_agents.agent_base import BaseAgent
+import logging
+from types import SimpleNamespace
+from typing import Any, Callable, Dict, List, Optional, Type
 
 # Import the new AppConfig instance
 from app_config import config
+from azure.ai.projects.models import (
+    ResponseFormatJsonSchema,
+    ResponseFormatJsonSchemaType,
+)
+from context.cosmos_memory_kernel import CosmosMemoryContext
+from kernel_agents.agent_base import BaseAgent
+from kernel_agents.generic_agent import GenericAgent
+from kernel_agents.group_chat_manager import GroupChatManager
 
 # Import all specialized agent implementations
 from kernel_agents.hr_agent import HrAgent
 from kernel_agents.human_agent import HumanAgent
 from kernel_agents.marketing_agent import MarketingAgent
-from kernel_agents.generic_agent import GenericAgent
-from kernel_agents.tech_support_agent import TechSupportAgent
+from kernel_agents.planner_agent import PlannerAgent  # Add PlannerAgent import
 from kernel_agents.procurement_agent import ProcurementAgent
 from kernel_agents.product_agent import ProductAgent
-from kernel_agents.planner_agent import PlannerAgent  # Add PlannerAgent import
-from kernel_agents.group_chat_manager import GroupChatManager
+from kernel_agents.tech_support_agent import TechSupportAgent
+from models.messages_kernel import AgentType, PlannerResponsePlan
+from semantic_kernel import Kernel
+from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
+from semantic_kernel.functions import KernelFunction
 from semantic_kernel.prompt_template.prompt_template_config import PromptTemplateConfig
-from context.cosmos_memory_kernel import CosmosMemoryContext
-from models.messages_kernel import PlannerResponsePlan, AgentType
-
-from azure.ai.projects.models import (
-    ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaType,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +174,7 @@ class AgentFactory:
         agent_type_str = cls._agent_type_strings.get(
             agent_type, agent_type.value.lower()
         )
-        tools = await cls._load_tools_for_agent(kernel, agent_type_str)
+        # tools = await cls._load_tools_for_agent(kernel, agent_type_str)
 
         # Build the agent definition (functions schema)
         definition = None
@@ -223,7 +221,7 @@ class AgentFactory:
                     "session_id": session_id,
                     "user_id": user_id,
                     "memory_store": memory_store,
-                    "tools": tools,
+                    "tools": [],
                     "system_message": system_message,
                     "client": client,
                     "definition": definition,
@@ -252,37 +250,6 @@ class AgentFactory:
         cls._agent_cache[session_id][agent_type] = agent
 
         return agent
-
-    @classmethod
-    async def _load_tools_for_agent(
-        cls, kernel: Kernel, agent_type: str
-    ) -> List[KernelFunction]:
-        """Load tools for an agent from the tools directory.
-
-        This tries to load tool configurations from JSON files. If that fails,
-        it returns an empty list for agents that don't need tools.
-
-        Args:
-            kernel: The semantic kernel instance
-            agent_type: The agent type string identifier
-
-        Returns:
-            A list of kernel functions for the agent
-        """
-        try:
-            # Try to use the BaseAgent's tool loading mechanism
-            tools = BaseAgent.get_tools_from_config(kernel, agent_type)
-            logger.info(f"Successfully loaded {len(tools)} tools for {agent_type}")
-            return tools
-        except FileNotFoundError:
-            # No tool configuration file found - this is expected for some agents
-            logger.info(
-                f"No tools defined for agent type '{agent_type}'. Returning empty list."
-            )
-            return []
-        except Exception as e:
-            logger.warning(f"Error loading tools for {agent_type}: {e}")
-            return []
 
     @classmethod
     async def create_all_agents(

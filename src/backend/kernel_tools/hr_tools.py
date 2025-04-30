@@ -9,7 +9,8 @@ formatting_instructions = "Instructions: returning the output of this function c
 
 
 class HrTools:
-    # Define HR tools (functions)
+    """Define HR tools (functions)"""
+
     @staticmethod
     @kernel_function(description="Schedule an orientation session for a new employee.")
     async def schedule_orientation_session(employee_name: str, date: str) -> str:

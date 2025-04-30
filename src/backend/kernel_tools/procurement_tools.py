@@ -1,5 +1,5 @@
 import inspect
-from typing import Annotated, Callable, List, Dict
+from typing import Annotated, Callable, Dict, List
 
 from semantic_kernel.functions import kernel_function
 
@@ -7,7 +7,8 @@ formatting_instructions = "Instructions: returning the output of this function c
 
 
 class ProcurementTools:
-    # Define Procurement tools (functions)
+    """Define Procurement tools (functions)"""
+
     @staticmethod
     @kernel_function(description="Order hardware items like laptops, monitors, etc.")
     async def order_hardware(item_name: str, quantity: int) -> str:

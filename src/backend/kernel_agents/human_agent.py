@@ -2,23 +2,22 @@ import logging
 from typing import List, Optional
 
 import semantic_kernel as sk
-from semantic_kernel.functions import KernelFunction
-from semantic_kernel.functions.kernel_arguments import KernelArguments
-
-from kernel_agents.agent_base import BaseAgent
 from context.cosmos_memory_kernel import CosmosMemoryContext
+from event_utils import track_event_if_configured
+from kernel_agents.agent_base import BaseAgent
+from kernel_tools.human_tools import HumanTools
 from models.messages_kernel import (
+    ActionRequest,
+    AgentMessage,
     AgentType,
     ApprovalRequest,
     HumanClarification,
     HumanFeedback,
     Step,
     StepStatus,
-    AgentMessage,
-    ActionRequest,
 )
-from event_utils import track_event_if_configured
-from src.backend.kernel_tools.human_tools import HumanTools
+from semantic_kernel.functions import KernelFunction
+from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 
 class HumanAgent(BaseAgent):
@@ -56,20 +55,15 @@ class HumanAgent(BaseAgent):
         """
         # Load configuration if tools not provided
         if tools is None:
-            # Get tools directly from HumanTools class
-            tools_dict = HumanTools.get_all_kernel_functions()
-            tools = [KernelFunction.from_method(func) for func in tools_dict.values()]
-
-            # Load the human tools configuration for system message
-            config = self.load_tools_config("human", config_path)
+            tools = [HumanTools]
 
             # Use system message from config if not explicitly provided
             if not system_message:
-                system_message = config.get(
-                    "system_message",
-                    "You are an AI Agent. You represent a human employee in our organization. "
-                    "You can perform day-to-day activities and collaborate with other functional agents. "
-                    "When someone asks you to complete a task, summarize what was done.",
+                system_message = (
+                    "system_message: "
+                    + "You are an AI Agent. You represent a human employee in our organization. "
+                    + "You can perform day-to-day activities and collaborate with other functional agents. "
+                    + "When someone asks you to complete a task, summarize what was done."
                 )
 
             # Use agent name from config if available

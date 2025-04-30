@@ -7,7 +7,8 @@ formatting_instructions = "Instructions: returning the output of this function c
 
 
 class TechSupportTools:
-    # Define Tech Support tools (functions)
+    """Define Tech Support functions (tools)"""
+
     @staticmethod
     @kernel_function(
         description="Send a welcome email to a new employee as part of onboarding."

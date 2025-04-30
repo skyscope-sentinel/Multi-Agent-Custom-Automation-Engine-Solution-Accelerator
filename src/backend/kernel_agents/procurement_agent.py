@@ -1,12 +1,11 @@
 from typing import List, Optional
 
 import semantic_kernel as sk
-from semantic_kernel.functions import KernelFunction
-
-from kernel_agents.agent_base import BaseAgent
 from context.cosmos_memory_kernel import CosmosMemoryContext
+from kernel_agents.agent_base import BaseAgent
+from kernel_tools.procurement_tools import ProcurementTools
 from models.messages_kernel import AgentType
-from src.backend.kernel_tools.procurement_tools import ProcurementTools
+from semantic_kernel.functions import KernelFunction
 
 
 class ProcurementAgent(BaseAgent):
@@ -44,18 +43,13 @@ class ProcurementAgent(BaseAgent):
         """
         # Load configuration if tools not provided
         if tools is None:
-            # Get tools directly from ProcurementTools class
-            tools_dict = ProcurementTools.get_all_kernel_functions()
-            tools = [KernelFunction.from_method(func) for func in tools_dict.values()]
-
-            # Load the procurement tools configuration for system message
-            config = self.load_tools_config("procurement", config_path)
+            tools = [ProcurementTools]
 
             # Use system message from config if not explicitly provided
             if not system_message:
-                system_message = config.get(
-                    "system_message",
-                    "You are an AI Agent. You are able to assist with procurement enquiries and order items. If you need additional information from the human user asking the question in order to complete a request, ask before calling a function.",
+                system_message = (
+                    "system_message"
+                    + "You are an AI Agent. You are able to assist with procurement enquiries and order items. If you need additional information from the human user asking the question in order to complete a request, ask before calling a function.",
                 )
 
             # Use agent name from config if available
