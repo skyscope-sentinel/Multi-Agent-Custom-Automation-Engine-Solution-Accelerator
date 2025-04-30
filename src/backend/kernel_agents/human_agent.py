@@ -168,43 +168,72 @@ class HumanAgent(BaseAgent):
 
         return "Human feedback processed successfully"
 
-    async def provide_clarification(
-        self, human_clarification: HumanClarification
-    ) -> str:
-        """Provide clarification on a plan.
 
-        This method stores human clarification information for a plan associated with a session.
-        It retrieves the plan from memory, updates it with the clarification text, and records
-        the event in telemetry.
+async def handle_human_clarification(
+    self, human_clarification: HumanClarification
+) -> str:
+    """Provide clarification on a plan.
 
-        Args:
-            human_clarification: The HumanClarification object containing the session_id
-                                and clarification_text provided by the human user
+    This method stores human clarification information for a plan associated with a session.
+    It retrieves the plan from memory, updates it with the clarification text, and records
+    the event in telemetry.
 
-        Returns:
-            Status message indicating success or failure of adding the clarification
-        """
-        session_id = human_clarification.session_id
-        clarification_text = human_clarification.clarification_text
+    Args:
+        human_clarification: The HumanClarification object containing the session_id
+                            and human_clarification provided by the human user
 
-        # Get the plan associated with this session
-        plan = await self._memory_store.get_plan_by_session(session_id)
-        if not plan:
-            return f"No plan found for session {session_id}"
+    Returns:
+        Status message indicating success or failure of adding the clarification
+    """
+    session_id = human_clarification.session_id
+    clarification_text = human_clarification.human_clarification
 
-        # Update the plan with the clarification
-        plan.human_clarification_response = clarification_text
-        await self._memory_store.update_plan(plan)
+    # Get the plan associated with this session
+    plan = await self._memory_store.get_plan_by_session(session_id)
+    if not plan:
+        return f"No plan found for session {session_id}"
 
-        # Track the event
-        track_event_if_configured(
-            "Human Agent - Provided clarification for plan",
-            {
-                "session_id": session_id,
-                "user_id": self._user_id,
-                "plan_id": plan.id,
-                "clarification": clarification_text,
-            },
+    # Update the plan with the clarification
+    plan.human_clarification_response = clarification_text
+    await self._memory_store.update_plan(plan)
+    await self._memory_store.add_item(
+        AgentMessage(
+            session_id=session_id,
+            user_id=self._user_id,
+            plan_id="",
+            content=f"{clarification_text}",
+            source=AgentType.HUMAN.value,
+            step_id="",
         )
-
-        return f"Clarification provided for plan {plan.id}"
+    )
+    # Track the event
+    track_event_if_configured(
+        "Human Agent - Provided clarification for plan",
+        {
+            "session_id": session_id,
+            "user_id": self._user_id,
+            "plan_id": plan.id,
+            "clarification": clarification_text,
+            "source": AgentType.HUMAN.value,
+        },
+    )
+    await self._memory_store.add_item(
+        AgentMessage(
+            session_id=session_id,
+            user_id=self._user_id,
+            plan_id="",
+            content="Thanks. The plan has been updated.",
+            source=AgentType.PLANNER.value,
+            step_id="",
+        )
+    )
+    track_event_if_configured(
+        "Planner - Updated with HumanClarification and added into the cosmos",
+        {
+            "session_id": session_id,
+            "user_id": self._user_id,
+            "content": "Thanks. The plan has been updated.",
+            "source": AgentType.PLANNER.value,
+        },
+    )
+    return f"Clarification provided for plan {plan.id}"
