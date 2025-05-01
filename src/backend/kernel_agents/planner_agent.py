@@ -1,37 +1,38 @@
-import logging
-import uuid
-import json
-import re
 import datetime
-from typing import Dict, List, Optional, Any, Tuple
-from pydantic import BaseModel, Field
+import json
+import logging
+import re
+import uuid
+from typing import Any, Dict, List, Optional, Tuple
+
+import semantic_kernel as sk
+from app_config import config
 from azure.ai.projects.models import (
     ResponseFormatJsonSchema,
     ResponseFormatJsonSchemaType,
 )
-import semantic_kernel as sk
-from semantic_kernel.functions import KernelFunction
-from semantic_kernel.functions.kernel_arguments import KernelArguments
+from context.cosmos_memory_kernel import CosmosMemoryContext
+from event_utils import track_event_if_configured
+from kernel_agents.agent_base import BaseAgent
+from models.messages_kernel import (
+    AgentMessage,
+    AgentType,
+    HumanFeedbackStatus,
+    InputTask,
+    Plan,
+    PlannerResponsePlan,
+    PlanStatus,
+    Step,
+    StepStatus,
+)
+from pydantic import BaseModel, Field
 from semantic_kernel.agents import (
     AzureAIAgent,
     AzureAIAgentSettings,
     AzureAIAgentThread,
 )
-from kernel_agents.agent_base import BaseAgent
-from context.cosmos_memory_kernel import CosmosMemoryContext
-from models.messages_kernel import (
-    AgentMessage,
-    AgentType,
-    InputTask,
-    Plan,
-    PlannerResponsePlan,
-    Step,
-    StepStatus,
-    PlanStatus,
-    HumanFeedbackStatus,
-)
-from event_utils import track_event_if_configured
-from app_config import config
+from semantic_kernel.functions import KernelFunction
+from semantic_kernel.functions.kernel_arguments import KernelArguments
 
 
 class PlannerAgent(BaseAgent):
@@ -694,14 +695,16 @@ class PlannerAgent(BaseAgent):
             for agent_name, agent in self._agent_instances.items():
                 # First try to get tools directly from the agent's corresponding tool class
                 tools_dict = None
-                
+
                 # Try to access plugins property which returns the get_all_kernel_functions result
                 if hasattr(agent, "plugins"):
                     try:
                         # Access plugins as a property, not a method
                         tools_dict = agent.plugins
-                        logging.info(f"Got tools dictionary from {agent_name}'s plugins property")
-                        
+                        logging.info(
+                            f"Got tools dictionary from {agent_name}'s plugins property"
+                        )
+
                         # Check if tools_dict is a list or a dictionary
                         if isinstance(tools_dict, list):
                             # Convert list to dictionary if needed
@@ -710,27 +713,33 @@ class PlannerAgent(BaseAgent):
                                 func_name = getattr(func, "__name__", f"function_{i}")
                                 tools_dict_converted[func_name] = func
                             tools_dict = tools_dict_converted
-                            logging.info(f"Converted tools list to dictionary for {agent_name}")
-                        
+                            logging.info(
+                                f"Converted tools list to dictionary for {agent_name}"
+                            )
+
                     except Exception as e:
-                        logging.warning(f"Error accessing plugins property for {agent_name}: {e}")
-                        
+                        logging.warning(
+                            f"Error accessing plugins property for {agent_name}: {e}"
+                        )
+
                 # Process tools from tools_dict if available
                 if tools_dict:
                     for func_name, func in tools_dict.items():
                         # Check if the function has necessary attributes
                         if hasattr(func, "__name__") and hasattr(func, "__doc__"):
-                            description = func.__doc__ or f"Function {func_name}"
+                            description = func.__kernel_function_description__
+                            if hasattr(func, "__annotations__"):
+                                arguments = func.__annotations__
 
-                            # Create tool entry
-                            tool_entry = {
-                                "agent": agent_name,
-                                "function": func_name,
-                                "description": description,
-                                "arguments": "{}",  # Default empty dict
-                            }
+                                # Create tool entry
+                                tool_entry = {
+                                    "agent": agent_name,
+                                    "function": func_name,
+                                    "description": description,
+                                    "arguments": arguments,  # Default empty dict
+                                }
 
-                            tools_list.append(tool_entry)
+                                tools_list.append(tool_entry)
 
                 # Fall back to the previous approach if no tools_dict found
                 elif hasattr(agent, "_tools") and agent._tools:

@@ -86,10 +86,10 @@ class HumanAgent(BaseAgent):
             definition=definition,
         )
 
-    @property
-    def plugins(self):
-        """Get the plugins for the human agent."""
-        return HumanTools.get_all_kernel_functions()
+    # @property
+    # def plugins(self):
+    #     """Get the plugins for the human agent."""
+    #     return HumanTools.get_all_kernel_functions()
 
     async def handle_human_feedback(self, human_feedback: HumanFeedback) -> str:
         """Handle human feedback on a step.
@@ -168,72 +168,71 @@ class HumanAgent(BaseAgent):
 
         return "Human feedback processed successfully"
 
+    async def handle_human_clarification(
+        self, human_clarification: HumanClarification
+    ) -> str:
+        """Provide clarification on a plan.
 
-async def handle_human_clarification(
-    self, human_clarification: HumanClarification
-) -> str:
-    """Provide clarification on a plan.
+        This method stores human clarification information for a plan associated with a session.
+        It retrieves the plan from memory, updates it with the clarification text, and records
+        the event in telemetry.
 
-    This method stores human clarification information for a plan associated with a session.
-    It retrieves the plan from memory, updates it with the clarification text, and records
-    the event in telemetry.
+        Args:
+            human_clarification: The HumanClarification object containing the session_id
+                                and human_clarification provided by the human user
 
-    Args:
-        human_clarification: The HumanClarification object containing the session_id
-                            and human_clarification provided by the human user
+        Returns:
+            Status message indicating success or failure of adding the clarification
+        """
+        session_id = human_clarification.session_id
+        clarification_text = human_clarification.human_clarification
 
-    Returns:
-        Status message indicating success or failure of adding the clarification
-    """
-    session_id = human_clarification.session_id
-    clarification_text = human_clarification.human_clarification
+        # Get the plan associated with this session
+        plan = await self._memory_store.get_plan_by_session(session_id)
+        if not plan:
+            return f"No plan found for session {session_id}"
 
-    # Get the plan associated with this session
-    plan = await self._memory_store.get_plan_by_session(session_id)
-    if not plan:
-        return f"No plan found for session {session_id}"
-
-    # Update the plan with the clarification
-    plan.human_clarification_response = clarification_text
-    await self._memory_store.update_plan(plan)
-    await self._memory_store.add_item(
-        AgentMessage(
-            session_id=session_id,
-            user_id=self._user_id,
-            plan_id="",
-            content=f"{clarification_text}",
-            source=AgentType.HUMAN.value,
-            step_id="",
+        # Update the plan with the clarification
+        plan.human_clarification_response = clarification_text
+        await self._memory_store.update_plan(plan)
+        await self._memory_store.add_item(
+            AgentMessage(
+                session_id=session_id,
+                user_id=self._user_id,
+                plan_id="",
+                content=f"{clarification_text}",
+                source=AgentType.HUMAN.value,
+                step_id="",
+            )
         )
-    )
-    # Track the event
-    track_event_if_configured(
-        "Human Agent - Provided clarification for plan",
-        {
-            "session_id": session_id,
-            "user_id": self._user_id,
-            "plan_id": plan.id,
-            "clarification": clarification_text,
-            "source": AgentType.HUMAN.value,
-        },
-    )
-    await self._memory_store.add_item(
-        AgentMessage(
-            session_id=session_id,
-            user_id=self._user_id,
-            plan_id="",
-            content="Thanks. The plan has been updated.",
-            source=AgentType.PLANNER.value,
-            step_id="",
+        # Track the event
+        track_event_if_configured(
+            "Human Agent - Provided clarification for plan",
+            {
+                "session_id": session_id,
+                "user_id": self._user_id,
+                "plan_id": plan.id,
+                "clarification": clarification_text,
+                "source": AgentType.HUMAN.value,
+            },
         )
-    )
-    track_event_if_configured(
-        "Planner - Updated with HumanClarification and added into the cosmos",
-        {
-            "session_id": session_id,
-            "user_id": self._user_id,
-            "content": "Thanks. The plan has been updated.",
-            "source": AgentType.PLANNER.value,
-        },
-    )
-    return f"Clarification provided for plan {plan.id}"
+        await self._memory_store.add_item(
+            AgentMessage(
+                session_id=session_id,
+                user_id=self._user_id,
+                plan_id="",
+                content="Thanks. The plan has been updated.",
+                source=AgentType.PLANNER.value,
+                step_id="",
+            )
+        )
+        track_event_if_configured(
+            "Planner - Updated with HumanClarification and added into the cosmos",
+            {
+                "session_id": session_id,
+                "user_id": self._user_id,
+                "content": "Thanks. The plan has been updated.",
+                "source": AgentType.PLANNER.value,
+            },
+        )
+        return f"Clarification provided for plan {plan.id}"

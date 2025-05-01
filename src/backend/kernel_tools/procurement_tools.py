@@ -1,13 +1,16 @@
 import inspect
-from typing import Annotated, Callable, List, Dict
+from typing import Annotated, Callable, Dict, List
 
 from semantic_kernel.functions import kernel_function
-
-formatting_instructions = "Instructions: returning the output of this function call verbatim to the user in markdown. Then write AGENT SUMMARY: and then include a summary of what you did."
 
 
 class ProcurementTools:
     # Define Procurement tools (functions)
+
+    formatting_instructions = "Instructions: returning the output of this function call verbatim to the user in markdown. Then write AGENT SUMMARY: and then include a summary of what you did."
+
+    agent_name = "ProcurementAgent"
+
     @staticmethod
     @kernel_function(description="Order hardware items like laptops, monitors, etc.")
     async def order_hardware(item_name: str, quantity: int) -> str:
@@ -16,7 +19,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Quantity:** {quantity}\n\n"
             f"Ordered {quantity} units of {item_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -30,7 +33,7 @@ class ProcurementTools:
             f"**License Type:** {license_type}\n"
             f"**Quantity:** {quantity}\n\n"
             f"Ordered {quantity} {license_type} licenses of {software_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -41,7 +44,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Status:** In Stock\n\n"
             f"Inventory status of {item_name}: In Stock.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -51,7 +54,7 @@ class ProcurementTools:
             f"##### Purchase Order Processed\n"
             f"**PO Number:** {po_number}\n\n"
             f"Purchase Order {po_number} has been processed.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -64,7 +67,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Contract Details:** {contract_details}\n\n"
             f"Contract negotiation initiated with {vendor_name}: {contract_details}\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -74,7 +77,7 @@ class ProcurementTools:
             f"##### Invoice Approved\n"
             f"**Invoice Number:** {invoice_number}\n\n"
             f"Invoice {invoice_number} approved for payment.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -85,7 +88,7 @@ class ProcurementTools:
             f"**Order Number:** {order_number}\n"
             f"**Status:** In Transit\n\n"
             f"Order {order_number} is currently in transit.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -96,7 +99,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Action:** {action}\n\n"
             f"Vendor relationship with {vendor_name} has been {action}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -106,7 +109,7 @@ class ProcurementTools:
             f"##### Procurement Policy Updated\n"
             f"**Policy:** {policy_name}\n\n"
             f"Procurement policy '{policy_name}' updated.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -116,7 +119,7 @@ class ProcurementTools:
             f"##### Procurement Report Generated\n"
             f"**Report Type:** {report_type}\n\n"
             f"Generated {report_type} procurement report.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -126,7 +129,7 @@ class ProcurementTools:
             f"##### Supplier Performance Evaluation\n"
             f"**Supplier:** {supplier_name}\n\n"
             f"Performance evaluation for supplier {supplier_name} completed.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -138,7 +141,7 @@ class ProcurementTools:
             f"**Quantity:** {quantity}\n"
             f"**Reason:** {reason}\n\n"
             f"Processed return of {quantity} units of {item_name} due to {reason}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -149,7 +152,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Amount:** ${amount:.2f}\n\n"
             f"Processed payment of ${amount:.2f} to {vendor_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -160,7 +163,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Quantity:** {quantity}\n\n"
             f"Requested quote for {quantity} units of {item_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -170,7 +173,7 @@ class ProcurementTools:
             f"##### Sourcing Options\n"
             f"**Item:** {item_name}\n\n"
             f"Sourcing options for {item_name} have been provided.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -183,7 +186,7 @@ class ProcurementTools:
             f"**Asset:** {asset_name}\n"
             f"**Details:** {asset_details}\n\n"
             f"Asset register updated for {asset_name}: {asset_details}\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -193,7 +196,7 @@ class ProcurementTools:
             f"##### Leasing Agreement Managed\n"
             f"**Agreement Details:** {agreement_details}\n\n"
             f"Leasing agreement processed: {agreement_details}\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -203,7 +206,7 @@ class ProcurementTools:
             f"##### Market Research Conducted\n"
             f"**Category:** {category}\n\n"
             f"Market research conducted for category: {category}\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -214,7 +217,7 @@ class ProcurementTools:
             f"**Equipment:** {equipment_name}\n"
             f"**Date:** {maintenance_date}\n\n"
             f"Scheduled maintenance for {equipment_name} on {maintenance_date}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -223,7 +226,7 @@ class ProcurementTools:
         return (
             f"##### Inventory Audit\n\n"
             f"Inventory audit has been conducted.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -234,7 +237,7 @@ class ProcurementTools:
             f"**Budget ID:** {budget_id}\n"
             f"**Amount:** ${amount:.2f}\n\n"
             f"Approved budget ID {budget_id} for amount ${amount:.2f}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -245,7 +248,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Warranty Period:** {warranty_period}\n\n"
             f"Warranty for {item_name} managed for period {warranty_period}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -257,7 +260,7 @@ class ProcurementTools:
             f"##### Customs Clearance\n"
             f"**Shipment ID:** {shipment_id}\n\n"
             f"Customs clearance for shipment ID {shipment_id} handled.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -268,7 +271,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Discount:** {discount_percentage}%\n\n"
             f"Negotiated a {discount_percentage}% discount with vendor {vendor_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -279,7 +282,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Details:** {vendor_details}\n\n"
             f"New vendor {vendor_name} registered with details: {vendor_details}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -289,7 +292,7 @@ class ProcurementTools:
             f"##### Asset Decommissioned\n"
             f"**Asset:** {asset_name}\n\n"
             f"Asset {asset_name} has been decommissioned.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -300,7 +303,7 @@ class ProcurementTools:
             f"**Session:** {session_name}\n"
             f"**Date:** {date}\n\n"
             f"Training session '{session_name}' scheduled on {date}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -311,7 +314,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Rating:** {rating}\n\n"
             f"Vendor {vendor_name} rating updated to {rating}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -322,7 +325,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Reason:** {recall_reason}\n\n"
             f"Recall of {item_name} due to {recall_reason} handled.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -333,7 +336,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Quantity:** {quantity}\n\n"
             f"Requested {quantity} samples of {item_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -344,7 +347,7 @@ class ProcurementTools:
             f"**Service:** {service_name}\n"
             f"**Action:** {action}\n\n"
             f"Subscription to {service_name} has been {action}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -354,7 +357,7 @@ class ProcurementTools:
             f"##### Supplier Certification Verified\n"
             f"**Supplier:** {supplier_name}\n\n"
             f"Certification status of supplier {supplier_name} verified.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -364,7 +367,7 @@ class ProcurementTools:
             f"##### Supplier Audit Conducted\n"
             f"**Supplier:** {supplier_name}\n\n"
             f"Audit of supplier {supplier_name} conducted.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -375,7 +378,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**License Details:** {license_details}\n\n"
             f"Import license for {item_name} managed: {license_details}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -385,7 +388,7 @@ class ProcurementTools:
             f"##### Cost Analysis Conducted\n"
             f"**Item:** {item_name}\n\n"
             f"Cost analysis for {item_name} conducted.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -397,7 +400,7 @@ class ProcurementTools:
             f"##### Risk Factors Evaluated\n"
             f"**Item:** {item_name}\n\n"
             f"Risk factors for {item_name} evaluated.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -407,7 +410,7 @@ class ProcurementTools:
             f"##### Green Procurement Policy Management\n"
             f"**Details:** {policy_details}\n\n"
             f"Green procurement policy managed: {policy_details}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -418,7 +421,7 @@ class ProcurementTools:
             f"**Supplier:** {supplier_name}\n"
             f"**Information:** {supplier_info}\n\n"
             f"Supplier database updated for {supplier_name}: {supplier_info}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -429,7 +432,7 @@ class ProcurementTools:
             f"**Vendor:** {vendor_name}\n"
             f"**Issue:** {issue}\n\n"
             f"Dispute with vendor {vendor_name} over issue '{issue}' resolved.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -440,7 +443,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Standards:** {compliance_standards}\n\n"
             f"Compliance of {item_name} with standards '{compliance_standards}' assessed.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -451,7 +454,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Quantity:** {quantity}\n\n"
             f"Reverse logistics managed for {quantity} units of {item_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -462,7 +465,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Status:** {delivery_status}\n\n"
             f"Delivery status of {item_name} verified as {delivery_status}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -472,7 +475,7 @@ class ProcurementTools:
             f"##### Procurement Risk Assessment\n"
             f"**Details:** {risk_details}\n\n"
             f"Procurement risk assessment handled: {risk_details}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -483,7 +486,7 @@ class ProcurementTools:
             f"**Supplier:** {supplier_name}\n"
             f"**Action:** {contract_action}\n\n"
             f"Supplier contract with {supplier_name} has been {contract_action}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -494,7 +497,7 @@ class ProcurementTools:
             f"**Department:** {department_name}\n"
             f"**Amount:** ${budget_amount:.2f}\n\n"
             f"Allocated budget of ${budget_amount:.2f} to {department_name}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -504,7 +507,7 @@ class ProcurementTools:
             f"##### Procurement Metrics Tracking\n"
             f"**Metric:** {metric_name}\n\n"
             f"Procurement metric '{metric_name}' tracked.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -515,7 +518,7 @@ class ProcurementTools:
             f"**Item:** {item_name}\n"
             f"**Action:** {action}\n\n"
             f"Inventory levels for {item_name} have been {action}.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -525,7 +528,7 @@ class ProcurementTools:
             f"##### Supplier Survey Conducted\n"
             f"**Supplier:** {supplier_name}\n\n"
             f"Survey of supplier {supplier_name} conducted.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
 
     @staticmethod
@@ -546,12 +549,101 @@ class ProcurementTools:
             f"- Software licenses should be managed to ensure compliance with vendor agreements.\n"
             f"- Regular inventory checks should be conducted to maintain optimal stock levels.\n"
             f"- Vendor relationships should be managed to achieve cost savings and ensure quality.\n"
-            f"{formatting_instructions}"
+            f"{ProcurementTools.formatting_instructions}"
         )
         return information
 
-    @staticmethod
-    def get_all_kernel_functions() -> Dict[str, Callable]:
+    @classmethod
+    def generate_tools_json_doc(cls) -> str:
+        """
+        Generate a JSON document containing information about all methods in the class.
+
+        Returns:
+            str: JSON string containing the methods' information
+        """
+
+        import inspect
+        import json
+        from typing import Any, Dict, List, get_type_hints
+
+        tools_list = []
+
+        # Get all methods from the class that have the kernel_function annotation
+        for name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
+            # Skip this method itself and any private methods
+            if name.startswith("_") or name == "generate_tools_json_doc":
+                continue
+
+            # Check if the method has the kernel_function annotation
+            if hasattr(method, "__kernel_function__"):
+                # Get method description from docstring or kernel_function description
+                description = ""
+                if hasattr(method, "__doc__") and method.__doc__:
+                    description = method.__doc__.strip()
+
+                # Get kernel_function description if available
+                if hasattr(method, "__kernel_function__") and getattr(
+                    method.__kernel_function__, "description", None
+                ):
+                    description = method.__kernel_function__.description
+
+                # Get argument information by introspection
+                sig = inspect.signature(method)
+                args_dict = {}
+
+                # Get type hints if available
+                type_hints = get_type_hints(method)
+
+                # Process parameters
+                for param_name, param in sig.parameters.items():
+                    # Skip first parameter 'cls' for class methods (though we're using staticmethod now)
+                    if param_name in ["cls", "self"]:
+                        continue
+
+                    # Get parameter type
+                    param_type = "string"  # Default type
+                    if param_name in type_hints:
+                        type_obj = type_hints[param_name]
+                        # Convert type to string representation
+                        if hasattr(type_obj, "__name__"):
+                            param_type = type_obj.__name__.lower()
+                        else:
+                            # Handle complex types like List, Dict, etc.
+                            param_type = str(type_obj).lower()
+                            if "int" in param_type:
+                                param_type = "int"
+                            elif "float" in param_type:
+                                param_type = "float"
+                            elif "bool" in param_type:
+                                param_type = "boolean"
+                            else:
+                                param_type = "string"
+
+                    # Create parameter description
+                    param_desc = param_name.replace("_", " ")
+                    args_dict[param_name] = {
+                        "description": param_name,
+                        "title": param_name.replace("_", " ").title(),
+                        "type": param_type,
+                    }
+
+                # Add the tool information to the list
+                tool_entry = {
+                    "agent": cls.agent_name,  # Use HR agent type
+                    "function": name,
+                    "description": description,
+                    "arguments": json.dumps(args_dict).replace('"', "'"),
+                }
+
+                tools_list.append(tool_entry)
+
+        # Return the JSON string representation
+        return json.dumps(tools_list, ensure_ascii=False, indent=2)
+
+    # This function does NOT have the kernel_function annotation
+    # because it's meant for introspection rather than being exposed as a tool
+    @classmethod
+    def get_all_kernel_functions(cls) -> dict[str, Callable]:
         """
         Returns a dictionary of all methods in this class that have the @kernel_function annotation.
         This function itself is not annotated with @kernel_function.
@@ -562,9 +654,7 @@ class ProcurementTools:
         kernel_functions = {}
 
         # Get all class methods
-        for name, method in inspect.getmembers(
-            ProcurementTools, predicate=inspect.isfunction
-        ):
+        for name, method in inspect.getmembers(cls, predicate=inspect.isfunction):
             # Skip this method itself and any private/special methods
             if name.startswith("_") or name == "get_all_kernel_functions":
                 continue

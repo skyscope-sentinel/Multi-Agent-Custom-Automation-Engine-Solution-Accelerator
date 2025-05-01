@@ -1,15 +1,18 @@
 # app_config.py
-import os
+import json
 import logging
-from typing import Optional, List, Dict, Any
-from dotenv import load_dotenv
-from azure.identity import DefaultAzureCredential, ClientSecretCredential
-from azure.cosmos.aio import CosmosClient
+import os
+from typing import Any, Dict, List, Optional
+
 from azure.ai.projects.aio import AIProjectClient
-from semantic_kernel.kernel import Kernel
-from semantic_kernel.contents import ChatHistory
+from azure.cosmos.aio import CosmosClient
+from azure.identity import ClientSecretCredential, DefaultAzureCredential
+from dotenv import load_dotenv
+from models.messages_kernel import AgentType
 from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
+from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import KernelFunction
+from semantic_kernel.kernel import Kernel
 
 # Load environment variables from .env file
 load_dotenv()
@@ -60,6 +63,9 @@ class AppConfig:
         self._cosmos_client = None
         self._cosmos_database = None
         self._ai_project_client = None
+
+        # Cached agent tools
+        self._agent_tools = None
 
     def _get_required(self, name: str, default: Optional[str] = None) -> str:
         """Get a required configuration value from environment variables.
@@ -271,6 +277,21 @@ class AppConfig:
         except Exception as exc:
             logging.error("Failed to create Azure AI Agent: %s", exc)
             raise
+
+    @property
+    def agent_tools(self) -> str:
+        """Get the cached agent tools."""
+        if self._agent_tools is None:
+            # walk through the agent tool classes and get the tools json strings
+            # by calling the generate_tools_json_doc method
+            # concatenate the json containing tools for all classes
+            for agent in AgentType:
+                tools = agent.generate_tools_json_doc()
+                if self._agent_tools is None:
+                    self._agent_tools = tools
+                else:
+                    self._agent_tools += tools
+        return self._agent_tools
 
 
 # Create a global instance of AppConfig
