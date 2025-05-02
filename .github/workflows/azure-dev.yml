@@ -5,6 +5,7 @@ on:
       - dev
       - main
       - feature/azd-semantickernel
+      - bk-azd-changes
   workflow_dispatch:
 
 permissions:
