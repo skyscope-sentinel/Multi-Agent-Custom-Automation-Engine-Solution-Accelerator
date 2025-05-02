@@ -31,6 +31,7 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {
   }
   properties: {
     customSubDomainName: format(uniqueNameFormat, 'openai')
+    disableLocalAuth: false
   }
   resource gpt4o 'deployments' = {
     name: 'gpt-4o'
