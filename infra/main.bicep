@@ -120,6 +120,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-04-01-preview' = 
     apiProperties: {
       //statisticsEnabled: false
     }
+    disableLocalAuth: true
   }
 }
 
@@ -242,7 +243,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
   location: location
   tags: tags
   properties: {
-    daprAIConnectionString: appInsights.properties.ConnectionString
+    daprAIConnectionString: appInsights.listKeys().primaryConnectionString
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
@@ -432,7 +433,7 @@ resource frontendAppService 'Microsoft.Web/sites@2021-02-01' = {
   }
   dependsOn: [containerApp]
   identity: {
-    type: 'SystemAssigned,UserAssigned'
+    type: 'SystemAssigned, UserAssigned'
     userAssignedIdentities: {
       '${pullIdentity.id}': {}
     }
