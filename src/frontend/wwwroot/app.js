@@ -246,4 +246,29 @@
     switchView();
     messageListeners();
     modalActions();
+
+    // Add cleanup trigger before page unload
+    window.addEventListener('beforeunload', function () {
+        let currentTask = getStoredData('task');
+        if (currentTask) {
+            try {
+                currentTask = JSON.parse(currentTask);
+            } catch (e) {
+                currentTask = null;
+            }
+        }
+
+        const sessionId = currentTask?.id;
+        if (sessionId) {
+            fetch(apiEndpoint + '/cleanup', {
+                method: 'POST',
+                headers: {
+                    ...window.headers,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ session_id: sessionId }),
+                keepalive: true
+            });
+        }
+    });
 })();

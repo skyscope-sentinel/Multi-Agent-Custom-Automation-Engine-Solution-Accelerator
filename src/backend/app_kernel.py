@@ -19,7 +19,7 @@ from context.cosmos_memory_kernel import CosmosMemoryContext
 from event_utils import track_event_if_configured
 
 # FastAPI imports
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from kernel_agents.agent_factory import AgentFactory
 
@@ -41,20 +41,7 @@ from models.messages_kernel import (
 # Updated import for KernelArguments
 from semantic_kernel.functions.kernel_arguments import KernelArguments
 from utils_kernel import get_agents, initialize_runtime_and_context, rai_success
-
-# # Check if the Application Insights Instrumentation Key is set in the environment variables
-# connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
-# if connection_string:
-#     # Configure Application Insights if the Instrumentation Key is found
-#     configure_azure_monitor(connection_string=connection_string)
-#     logging.info(
-#         "Application Insights configured with the provided Instrumentation Key"
-#     )
-# else:
-#     # Log a warning if the Instrumentation Key is not found
-#     logging.warning(
-#         "No Application Insights Instrumentation Key found. Skipping configuration"
-#     )
+from pydantic import BaseModel
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -72,6 +59,55 @@ logging.getLogger("azure.monitor.opentelemetry.exporter.export._base").setLevel(
 
 # Initialize the FastAPI app
 app = FastAPI()
+
+@app.on_event("shutdown")
+async def cleanup_agents():
+    """
+    Cleanup hook that runs when the FastAPI application shuts down.
+    Ensures all Azure AI Project agents are properly deleted to prevent resource leakage.
+    """
+    logging.info("Starting shutdown cleanup of Azure AI agents...")
+    from app_config import config
+    from kernel_agents.agent_factory import AgentFactory
+
+    try:
+        # Get AI Project client
+        client = config.get_ai_project_client()
+        all_agents_page = await client.agents.list_agents()
+        all_agents = list(all_agents_page.data)
+
+        # If pagination exists, extend more
+        while getattr(all_agents_page, "continuation_token", None):
+            all_agents_page = await client.agents.list_agents(
+                continuation_token=all_agents_page.continuation_token
+            )
+            all_agents.extend(all_agents_page.data)
+
+        logging.info(f"Total agents found in project: {len(all_agents)}")
+
+        # Track how many we delete
+        deleted_count = 0
+        failed_count = 0
+
+        for agent in all_agents:
+            try:
+                await client.agents.delete_agent(agent.id)
+                logging.info(f"Deleted agent: {agent.name} ({agent.id})")
+                deleted_count += 1
+            except Exception as delete_err:
+                logging.warning(f"Failed to delete agent {agent.name}: {delete_err}")
+                failed_count += 1
+
+        # Clear in-memory cache just in case
+        AgentFactory.clear_created_agent_ids()
+        AgentFactory.clear_cache()
+
+        logging.info(f"Cleanup complete. Deleted: {deleted_count}, Failed: {failed_count}")
+
+        await client.close()
+
+    except Exception as e:
+        logging.error(f"Error during shutdown cleanup: {e}")
 
 frontend_url = Config.FRONTEND_SITE_NAME
 
@@ -888,6 +924,62 @@ async def get_agent_tools():
                 description: Arguments required by the tool function
     """
     return []
+
+
+class CleanupRequest(BaseModel):
+    session_id: str
+
+@app.post("/api/cleanup")
+async def cleanup_agents_for_session(payload: CleanupRequest, request: Request):
+    """
+    Called from frontend when tab closes (via beforeunload).
+    Deletes Azure agents matching session_id from AI Project.
+    """
+    session_id = payload.session_id
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Missing session_id")
+
+    try:
+        client = config.get_ai_project_client()
+        all_agents_page = await client.agents.list_agents()
+        all_agents = list(all_agents_page.data)
+
+        while getattr(all_agents_page, "continuation_token", None):
+            all_agents_page = await client.agents.list_agents(
+                continuation_token=all_agents_page.continuation_token
+            )
+            all_agents.extend(all_agents_page.data)
+
+        deleted = 0
+        output_lines = []
+
+        for agent in all_agents:
+            # Match agents with session ID OR duplicate default agent name (heuristic match)
+            if f"-sid_{session_id}" in agent.name or any(
+                agent.name.startswith(prefix)
+                for prefix in [
+                    "Product_Agent",
+                    "Marketing_Agent",
+                    "Hr_Agent",
+                    "Generic_Agent",
+                    "Tech_Support_Agent",
+                    "Procurement_Agent",
+                    "Planner_Agent",
+                    "Group_Chat_Manager",
+                    "Human_Agent",
+                ]
+            ):
+                await client.agents.delete_agent(agent.id)
+                logging.info(f"Deleted agent: {agent.name} ({agent.id})")
+                output_lines.append(f"{agent.name}\n{agent.id}")
+                deleted += 1
+
+        AgentFactory.clear_cache(session_id)
+        return {"deleted": deleted, "agents": output_lines}
+
+    except Exception as e:
+        logging.error(f"Cleanup failed for session {session_id}: {e}")
+        raise HTTPException(status_code=500, detail="Agent cleanup failed")
 
 
 # Run the app

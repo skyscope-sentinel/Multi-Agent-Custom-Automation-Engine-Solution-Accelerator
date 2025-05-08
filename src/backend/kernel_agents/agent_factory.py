@@ -51,6 +51,30 @@ class AgentFactory:
         AgentType.GROUP_CHAT_MANAGER: GroupChatManager,  # Add GroupChatManager
     }
 
+    # Track all Azure AI agent IDs created during application lifetime
+    _created_agent_ids: List[str] = []
+
+    @classmethod
+    def get_created_agent_ids(cls) -> List[str]:
+        """
+        Return the list of all Azure AI agent IDs created during this application run.
+        Used during shutdown for proper resource cleanup.
+        """
+        return cls._created_agent_ids
+
+    @classmethod
+    def clear_created_agent_ids(cls):
+        """
+        Clear the list of tracked agent IDs.
+        Called after successful cleanup during application shutdown.
+        
+        This method properly captures the count before clearing and follows
+        Azure best practices for resource tracking and logging.
+        """
+        count = len(cls._created_agent_ids)
+        cls._created_agent_ids.clear()
+        logger.info(f"Cleared tracking list of {count} Azure AI agent IDs")
+
     # Mapping of agent types to their string identifiers (for automatic tool loading)
     _agent_type_strings: Dict[AgentType, str] = {
         AgentType.HR: AgentType.HR.value,
@@ -170,19 +194,20 @@ class AgentFactory:
 
         try:
             # Create the agent definition using the AIProjectClient (project-based pattern)
-            # For GroupChatManager, create a definition with minimal configuration
             if client is not None:
-
                 definition = await client.agents.create_agent(
                     model=config.AZURE_OPENAI_DEPLOYMENT_NAME,
                     name=agent_type_str,
                     instructions=system_message,
                     temperature=temperature,
-                    response_format=response_format,  # Add response_format if required
+                    response_format=response_format,
                 )
-                logger.info(
-                    f"Successfully created agent definition for {agent_type_str}"
-                )
+                
+                # Track the agent ID for later cleanup during application shutdown
+                cls._created_agent_ids.append(definition.id)
+                logger.info(f"Created and tracking Azure AI agent with ID: {definition.id}")
+                
+                logger.info(f"Successfully created agent definition for {agent_type_str}")
         except Exception as agent_exc:
             logger.error(
                 f"Error creating agent definition with AIProjectClient for {agent_type_str}: {agent_exc}"
