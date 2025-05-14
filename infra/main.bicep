@@ -212,11 +212,11 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     name: '00000000-0000-0000-0000-000000000002'
   }
 
-  resource autogenDb 'sqlDatabases' = {
-    name: 'autogen'
+  resource macaeDb 'sqlDatabases' = {
+    name: 'macae'
     properties: {
       resource: {
-        id: 'autogen'
+        id: 'macae'
         createMode: 'Default'
       }
     }
@@ -333,11 +333,11 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'COSMOSDB_DATABASE'
-              value: cosmos::autogenDb.name
+              value: cosmos::macaeDb.name
             }
             {
               name: 'COSMOSDB_CONTAINER'
-              value: cosmos::autogenDb::memoryContainer.name
+              value: cosmos::macaeDb::memoryContainer.name
             }
             {
               name: 'AZURE_OPENAI_ENDPOINT'
