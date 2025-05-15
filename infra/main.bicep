@@ -26,7 +26,7 @@ targetScope = 'resourceGroup'
   'westus3'
 ])
 @description('Location for all Ai services resources. This location can be different from the resource group location.')
-param azureOpenAILocation string = 'eastus2'
+param azureOpenAILocation string 
 
 @minLength(3)
 @maxLength(20)
@@ -34,7 +34,7 @@ param azureOpenAILocation string = 'eastus2'
 param environmentName string
 
 @description('Set this if you want to deploy to a different region than the resource group. Otherwise, it will use the resource group location by default.')
-param AZURE_LOCATION string=''
+param AZURE_LOCATION string
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
 var uniqueId = toLower(uniqueString(subscription().id, environmentName, solutionLocation))
@@ -218,11 +218,11 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
     name: '00000000-0000-0000-0000-000000000002'
   }
 
-  resource autogenDb 'sqlDatabases' = {
-    name: 'autogen'
+  resource macaeDb 'sqlDatabases' = {
+    name: 'macae'
     properties: {
       resource: {
-        id: 'autogen'
+        id: 'macae'
         createMode: 'Default'
       }
     }
@@ -339,11 +339,11 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'COSMOSDB_DATABASE'
-              value: cosmos::autogenDb.name
+              value: cosmos::macaeDb.name
             }
             {
               name: 'COSMOSDB_CONTAINER'
-              value: cosmos::autogenDb::memoryContainer.name
+              value: cosmos::macaeDb::memoryContainer.name
             }
             {
               name: 'AZURE_OPENAI_ENDPOINT'
