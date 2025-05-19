@@ -317,7 +317,7 @@ class MarketingTools:
                 type_hints = get_type_hints(method)
 
                 # Process parameters
-                for param_name in sig.parameters.items():
+                for param_name, param in sig.parameters.items(): 
                     # Skip first parameter 'cls' for class methods (though we're using staticmethod now)
                     if param_name in ["cls", "self"]:
                         continue
