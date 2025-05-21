@@ -1,11 +1,13 @@
 # app_config.py
 import logging
 import os
-from typing import Optional
+from typing import Optional, Union, Any
 
 from azure.ai.projects.aio import AIProjectClient
 from azure.cosmos.aio import CosmosClient
 from azure.identity import DefaultAzureCredential
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
 from dotenv import load_dotenv
 from semantic_kernel.kernel import Kernel
 
@@ -52,12 +54,23 @@ class AppConfig:
         self.AZURE_AI_AGENT_PROJECT_CONNECTION_STRING = self._get_required(
             "AZURE_AI_AGENT_PROJECT_CONNECTION_STRING"
         )
+        
+        # Azure AI Search settings
+        self.AZURE_SEARCH_ENDPOINT = self._get_optional("AZURE_SEARCH_ENDPOINT")
+        self.AZURE_SEARCH_API_KEY = self._get_optional("AZURE_SEARCH_API_KEY")
+        self.AZURE_SEARCH_INDEX_NAME = self._get_optional("AZURE_SEARCH_INDEX_NAME")
+        self.AZURE_SEARCH_ENABLED = self._get_bool("AZURE_SEARCH_ENABLED")
+        
+        # File search settings
+        self.FILE_SEARCH_ENABLED = self._get_bool("FILE_SEARCH_ENABLED")
+        self.FILE_SEARCH_PATH = self._get_optional("FILE_SEARCH_PATH")
 
         # Cached clients and resources
         self._azure_credentials = None
         self._cosmos_client = None
         self._cosmos_database = None
         self._ai_project_client = None
+        self._search_client = None
 
     def _get_required(self, name: str, default: Optional[str] = None) -> str:
         """Get a required configuration value from environment variables.
@@ -186,6 +199,44 @@ class AppConfig:
         except Exception as exc:
             logging.error("Failed to create AIProjectClient: %s", exc)
             raise
+            
+    def get_search_client(self) -> Union[SearchClient, None]:
+        """Get or create an Azure AI Search client.
+        
+        Returns:
+            An Azure Search client or None if search is not enabled or configured
+        """
+        # Return early if search is not enabled
+        if not self.AZURE_SEARCH_ENABLED:
+            return None
+            
+        # Return cached client if available
+        if self._search_client is not None:
+            return self._search_client
+            
+        try:
+            # Check if required configuration is available
+            if not self.AZURE_SEARCH_ENDPOINT or not self.AZURE_SEARCH_INDEX_NAME:
+                logging.warning("Azure Search endpoint or index name not configured")
+                return None
+                
+            # Create client with API key if provided, otherwise use Azure credentials
+            if self.AZURE_SEARCH_API_KEY:
+                credential = AzureKeyCredential(self.AZURE_SEARCH_API_KEY)
+            else:
+                credential = self.get_azure_credentials()
+                
+            # Create the search client
+            self._search_client = SearchClient(
+                endpoint=self.AZURE_SEARCH_ENDPOINT,
+                index_name=self.AZURE_SEARCH_INDEX_NAME,
+                credential=credential
+            )
+            
+            return self._search_client
+        except Exception as exc:
+            logging.error("Failed to create Azure Search client: %s", exc)
+            return None
 
 
 # Create a global instance of AppConfig

@@ -1,0 +1,47 @@
+{
+  "name": "Knowledge_Agent",
+  "description": "Agent with access to knowledge bases for answering questions using AI Search or file search",
+  "tools": [
+    {
+      "name": "search_knowledge_base",
+      "description": "Search the AI Search knowledge base for the given query",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "description": "The search query text"
+        },
+        "top": {
+          "type": "integer",
+          "description": "Maximum number of results to return"
+        },
+        "filter": {
+          "type": "string",
+          "description": "Optional filter expression"
+        }
+      }
+    },
+    {
+      "name": "file_search",
+      "description": "Search for files containing the query text",
+      "parameters": {
+        "query": {
+          "type": "string",
+          "description": "Text to search for"
+        },
+        "file_types": {
+          "type": "string",
+          "description": "Comma-separated file extensions to search (e.g. 'txt,md,pdf')"
+        },
+        "max_results": {
+          "type": "integer",
+          "description": "Maximum number of files to return"
+        }
+      }
+    },
+    {
+      "name": "get_knowledge_base_info",
+      "description": "Get information about the configured knowledge base",
+      "parameters": {}
+    }
+  ]
+}

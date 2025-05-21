@@ -10,6 +10,7 @@ from event_utils import track_event_if_configured
 from kernel_agents.agent_base import BaseAgent
 from kernel_tools.generic_tools import GenericTools
 from kernel_tools.hr_tools import HrTools
+from kernel_tools.knowledge_tools import KnowledgeTools
 from kernel_tools.marketing_tools import MarketingTools
 from kernel_tools.procurement_tools import ProcurementTools
 from kernel_tools.product_tools import ProductTools
@@ -83,6 +84,7 @@ class PlannerAgent(BaseAgent):
             AgentType.PROCUREMENT.value,
             AgentType.TECH_SUPPORT.value,
             AgentType.GENERIC.value,
+            AgentType.KNOWLEDGE.value,
         ]
         self._agent_tools_list = {
             AgentType.HR: HrTools.generate_tools_json_doc(),
@@ -91,6 +93,7 @@ class PlannerAgent(BaseAgent):
             AgentType.PROCUREMENT: ProcurementTools.generate_tools_json_doc(),
             AgentType.TECH_SUPPORT: TechSupportTools.generate_tools_json_doc(),
             AgentType.GENERIC: GenericTools.generate_tools_json_doc(),
+            AgentType.KNOWLEDGE: KnowledgeTools.generate_tools_json_doc(),
         }
 
         self._agent_instances = agent_instances or {}
@@ -556,6 +559,8 @@ class PlannerAgent(BaseAgent):
             These agents have access to the following functions:
             {{$tools_str}}
 
+            For any step that requires access to knowledge bases, external information, or answering questions based on documentation or data, use the Knowledge_Agent. The Knowledge_Agent can search through Azure AI Search indexes or file repositories to find accurate information.
+            
             The first step of your plan should be to ask the user for any additional information required to progress the rest of steps planned.
 
             Only use the functions provided as part of your plan. If the task is not possible with the agents and tools provided, create a step with the agent of type Exception and mark the overall status as completed.
