@@ -1,6 +1,51 @@
 """Test cases for ProcurementTools class."""
+import sys
+import os
+import types
 import pytest
-from src.backend.kernel_tools.procurement_tools import ProcurementTools
+
+# --- Stub out semantic_kernel.functions ---
+sk_pkg = types.ModuleType("semantic_kernel")
+sk_pkg.__path__ = []
+sk_funcs = types.ModuleType("semantic_kernel.functions")
+
+def kernel_function(name=None, description=None):
+    class DummyKernelFunction:
+        def __init__(self, description):
+            self.description = description
+
+    def decorator(func):
+        setattr(func, "__kernel_name__", name or func.__name__)
+        setattr(func, "__kernel_function__", DummyKernelFunction(description))
+        return func
+    return decorator
+
+sk_funcs.kernel_function = kernel_function
+sys.modules["semantic_kernel"] = sk_pkg
+sys.modules["semantic_kernel.functions"] = sk_funcs
+
+# --- Stub out models.messages_kernel.AgentType ---
+models_pkg = types.ModuleType("models")
+msgs_mod = types.ModuleType("models.messages_kernel")
+from enum import Enum
+class AgentType(Enum):
+    HR = 'hr_agent'
+    PROCUREMENT = 'procurement_agent'
+    MARKETING = 'marketing_agent'
+    PRODUCT = 'product_agent'
+    TECH_SUPPORT = 'tech_support_agent'
+msgs_mod.AgentType = AgentType
+models_pkg.messages_kernel = msgs_mod
+sys.modules['models'] = models_pkg
+sys.modules['models.messages_kernel'] = msgs_mod
+
+# Ensure 'src' is on sys.path
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+SRC_PATH = os.path.join(PROJECT_ROOT, 'src')
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
+
+from backend.kernel_tools.procurement_tools import ProcurementTools
 
 
 @pytest.mark.asyncio
