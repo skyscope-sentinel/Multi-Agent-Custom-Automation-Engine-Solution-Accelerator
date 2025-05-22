@@ -148,7 +148,7 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
 3. Provide an `azd` environment name (e.g., "macaeapp").
 4. Select a subscription from your Azure account and choose a location that has quota for all the resources.
 
-   - This deployment will take _4-6 minutes_ to provision the resources in your account and set up the solution with sample data.
+   - The default deployment will take _4-6 minutes_ to provision the resources in your account and set up the solution with sample data. The WAF aligned deployment will take between _25-45 minuntes_.
    - If you encounter an error or timeout during deployment, changing the location may help, as there could be availability constraints for the resources.
 
 5. Once the deployment has completed successfully, open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service, and get the app URL from `Default domain`.

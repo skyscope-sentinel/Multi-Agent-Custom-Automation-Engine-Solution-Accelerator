@@ -5,6 +5,9 @@ metadata description = 'This module contains the resources required to deploy th
 @maxLength(19)
 param solutionPrefix string = 'macae${uniqueString(deployer().objectId, deployer().tenantId, subscription().subscriptionId, resourceGroup().id)}'
 
+@description('Capacity of the AI Foundry AI Services resource. The default value is 140.')
+param aiFoundryCapacity int 
+
 @description('Optional. Location for all Resources.')
 param solutionLocation string = resourceGroup().location
 
@@ -717,7 +720,8 @@ var aiFoundryAiServicesModelDeployment = {
   version: '2024-08-06'
   sku: {
     name: 'GlobalStandard'
-    capacity: 50
+    //Curently the capacity is set to 140 for opinanal performance. 
+    capacity: aiFoundryCapacity
   }
   raiPolicyName: 'Microsoft.Default'
 }
