@@ -10,7 +10,7 @@ param applicationInsightsConfiguration = {
   retentionInDays: 30
 }
 param virtualNetworkConfiguration = {
-  enabled: true
+  enabled: false
 }
 param aiFoundryStorageAccountConfiguration = {
   sku: 'Standard_LRS'
@@ -19,7 +19,4 @@ param webServerFarmConfiguration = {
   skuCapacity: 1
   skuName: 'B2'
 }
-param virtualMachineConfiguration = {
-  adminUsername: 'adminuser'
-  adminPassword: '$tart12345'
-}
+
