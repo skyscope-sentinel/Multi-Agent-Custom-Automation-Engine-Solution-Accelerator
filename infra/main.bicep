@@ -591,6 +591,14 @@ module virtualNetwork 'br/public:avm/res/network/virtual-network:0.6.1' = if (vi
         networkSecurityGroupResourceId: networkSecurityGroupBastion.outputs.resourceId
       }
       {
+        // Subnet IP address limitation: only class B and C are supported
+        // https://learn.microsoft.com/en-us/azure/ai-services/agents/how-to/virtual-networks
+        name: 'ai-foundry-agents' //This exact name is required for Azure Bastion
+        addressPrefix: '10.0.1.0/24'
+        //networkSecurityGroupResourceId: networkSecurityGroupBastion.outputs.resourceId
+        delegation: 'Microsoft.App/environments'
+      }
+      {
         // If you use your own vnw, you need to provide a subnet that is dedicated exclusively to the Container App environment you deploy. This subnet isn't available to other services
         // https://learn.microsoft.com/en-us/azure/container-apps/networking?tabs=workload-profiles-env%2Cazure-cli#custom-vnw-configuration
         name: 'containers'
@@ -729,7 +737,7 @@ var aiFoundryAiServicesModelDeployment = {
   version: '2024-08-06'
   sku: {
     name: 'GlobalStandard'
-    //Curently the capacity is set to 140 for opinanal performance. 
+    //Currently the capacity is set to 140 for optimal performance. 
     capacity: aiFoundryAiServicesConfiguration.?modelCapcity ?? 140
   }
   raiPolicyName: 'Microsoft.Default'
@@ -749,6 +757,11 @@ module aiFoundryAiServices 'br/public:avm/res/cognitive-services/account:0.10.2'
     customSubDomainName: aiFoundryAiServicesResourceName
     apiProperties: {
       //staticsEnabled: false
+    }
+    networkAcls: {
+      defaultAction: 'Allow'
+      virtualNetworkRules: []
+      ipRules: []
     }
     //publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
     //publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
