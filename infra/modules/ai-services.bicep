@@ -1,24 +1,141 @@
-//NOTE: this code is based on AVM module plus missing required capbilities we need for this GSA 'br/public:avm/res/cognitive-services/account:0.10.2'
+metadata name = 'Cognitive Services'
+metadata description = 'This module deploys a Cognitive Service.'
+
+@description('Required. The name of Cognitive Services account.')
 param name string
-param tags object = {}
-param location string
+
+@description('Required. Kind of the Cognitive Services account. Use \'Get-AzCognitiveServicesAccountSku\' to determine a valid combinations of \'kind\' and \'SKU\' for your Azure region.')
+@allowed([
+  'AIServices'
+  'AnomalyDetector'
+  'CognitiveServices'
+  'ComputerVision'
+  'ContentModerator'
+  'ContentSafety'
+  'ConversationalLanguageUnderstanding'
+  'CustomVision.Prediction'
+  'CustomVision.Training'
+  'Face'
+  'FormRecognizer'
+  'HealthInsights'
+  'ImmersiveReader'
+  'Internal.AllInOne'
+  'LUIS'
+  'LUIS.Authoring'
+  'LanguageAuthoring'
+  'MetricsAdvisor'
+  'OpenAI'
+  'Personalizer'
+  'QnAMaker.v2'
+  'SpeechServices'
+  'TextAnalytics'
+  'TextTranslation'
+])
 param kind string
-param sku string
+
+@description('Optional. SKU of the Cognitive Services account. Use \'Get-AzCognitiveServicesAccountSku\' to determine a valid combinations of \'kind\' and \'SKU\' for your Azure region.')
+@allowed([
+  'C2'
+  'C3'
+  'C4'
+  'F0'
+  'F1'
+  'S'
+  'S0'
+  'S1'
+  'S10'
+  'S2'
+  'S3'
+  'S4'
+  'S5'
+  'S6'
+  'S7'
+  'S8'
+  'S9'
+])
+param sku string = 'S0'
+
+@description('Optional. Location for all Resources.')
+param location string = resourceGroup().location
+
 import { diagnosticSettingFullType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
-param diagnosticSettings diagnosticSettingFullType[]
-param publicNetworkAccess string
-param customSubDomainName string
-import { privateEndpointSingleServiceType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
-param privateEndpoints privateEndpointSingleServiceType[]
+@description('Optional. The diagnostic settings of the service.')
+param diagnosticSettings diagnosticSettingFullType[]?
+
+@description('Optional. Whether or not public network access is allowed for this resource. For security reasons it should be disabled. If not specified, it will be disabled by default if private endpoints are set and networkAcls are not set.')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
+param publicNetworkAccess string?
+
+@description('Conditional. Subdomain name used for token-based authentication. Required if \'networkAcls\' or \'privateEndpoints\' are set.')
+param customSubDomainName string?
+
+@description('Optional. A collection of rules governing the accessibility from specific network locations.')
 param networkAcls object?
+
+@description('Optional. The network injection subnet resource Id for the Cognitive Services account. This allows to use the AI Services account with a virtual network.')
+param networkInjectionSubnetResourceId string?
+
+import { privateEndpointSingleServiceType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
+@description('Optional. Configuration details for private endpoints. For security reasons, it is recommended to use private endpoints whenever possible.')
+param privateEndpoints privateEndpointSingleServiceType[]?
+
+import { lockType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
+@description('Optional. The lock settings of the service.')
+param lock lockType?
+
+import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
+@description('Optional. Array of role assignments to create.')
+param roleAssignments roleAssignmentType[]?
+
+@description('Optional. Tags of the resource.')
+param tags object?
+
+@description('Optional. List of allowed FQDN.')
+param allowedFqdnList array?
+
+@description('Optional. The API properties for special APIs.')
+param apiProperties object?
+
+@description('Optional. Allow only Azure AD authentication. Should be enabled for security reasons.')
+param disableLocalAuth bool = true
+
+import { customerManagedKeyType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
+@description('Optional. The customer managed key definition.')
+param customerManagedKey customerManagedKeyType?
+
+@description('Optional. The flag to enable dynamic throttling.')
+param dynamicThrottlingEnabled bool = false
+
+@secure()
+@description('Optional. Resource migration token.')
+param migrationToken string?
+
+@description('Optional. Restore a soft-deleted cognitive service at deployment time. Will fail if no such soft-deleted resource exists.')
+param restore bool = false
+
+@description('Optional. Restrict outbound network access.')
+param restrictOutboundNetworkAccess bool = true
+
+@description('Optional. The storage accounts for this resource.')
+param userOwnedStorage array?
+
 import { managedIdentityAllType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
 @description('Optional. The managed identity definition for this resource.')
-param managedIdentities managedIdentityAllType
-param allowedFqdnList array?
-param apiProperties object
-param disableLocalAuth bool = true
-import { roleAssignmentType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
-param roleAssignments roleAssignmentType[]?
+param managedIdentities managedIdentityAllType?
+
+@description('Optional. Enable/Disable usage telemetry for module.')
+param enableTelemetry bool = true
+
+@description('Optional. Array of deployments about cognitive service accounts to create.')
+param deployments deploymentType[]?
+
+@description('Optional. Key vault reference and secret settings for the module\'s secrets export.')
+param secretsExportConfiguration secretsExportConfigurationType?
+
+var enableReferencedModulesTelemetry = false
 
 var formattedUserAssignedIdentities = reduce(
   map((managedIdentities.?userAssignedResourceIds ?? []), (id) => { '${id}': {} }),
@@ -155,6 +272,45 @@ var formattedRoleAssignments = [
   })
 ]
 
+#disable-next-line no-deployments-resources
+resource avmTelemetry 'Microsoft.Resources/deployments@2024-03-01' = if (enableTelemetry) {
+  name: '46d3xbcp.res.cognitiveservices-account.${replace('0.10.2', '.', '-')}.${substring(uniqueString(deployment().name, location), 0, 4)}'
+  properties: {
+    mode: 'Incremental'
+    template: {
+      '$schema': 'https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#'
+      contentVersion: '1.0.0.0'
+      resources: []
+      outputs: {
+        telemetry: {
+          type: 'String'
+          value: 'For more information, see https://aka.ms/avm/TelemetryInfo'
+        }
+      }
+    }
+  }
+}
+
+resource cMKKeyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = if (!empty(customerManagedKey.?keyVaultResourceId)) {
+  name: last(split(customerManagedKey.?keyVaultResourceId!, '/'))
+  scope: resourceGroup(
+    split(customerManagedKey.?keyVaultResourceId!, '/')[2],
+    split(customerManagedKey.?keyVaultResourceId!, '/')[4]
+  )
+
+  resource cMKKey 'keys@2023-02-01' existing = if (!empty(customerManagedKey.?keyVaultResourceId) && !empty(customerManagedKey.?keyName)) {
+    name: customerManagedKey.?keyName!
+  }
+}
+
+resource cMKUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' existing = if (!empty(customerManagedKey.?userAssignedIdentityResourceId)) {
+  name: last(split(customerManagedKey.?userAssignedIdentityResourceId!, '/'))
+  scope: resourceGroup(
+    split(customerManagedKey.?userAssignedIdentityResourceId!, '/')[2],
+    split(customerManagedKey.?userAssignedIdentityResourceId!, '/')[4]
+  )
+}
+
 resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
   name: name
   kind: kind
@@ -179,6 +335,17 @@ resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-04-01-previ
     allowedFqdnList: allowedFqdnList
     apiProperties: apiProperties
     disableLocalAuth: disableLocalAuth
+    #disable-next-line BCP036
+    networkInjections: networkInjectionSubnetResourceId != null
+      ? [
+          {
+            scenario: 'agent'
+            subnetArmId: networkInjectionSubnetResourceId
+            useMicrosoftManagedNetwork: false
+          }
+        ]
+      : null
+    // true is not supported today
     encryption: !empty(customerManagedKey)
       ? {
           keySource: 'Microsoft.KeyVault'
@@ -221,6 +388,17 @@ resource cognitiveService_deployments 'Microsoft.CognitiveServices/accounts/depl
     }
   }
 ]
+
+resource cognitiveService_lock 'Microsoft.Authorization/locks@2020-05-01' = if (!empty(lock ?? {}) && lock.?kind != 'None') {
+  name: lock.?name ?? 'lock-${name}'
+  properties: {
+    level: lock.?kind ?? ''
+    notes: lock.?kind == 'CanNotDelete'
+      ? 'Cannot delete resource or child resources.'
+      : 'Cannot delete or modify the resource or child resources.'
+  }
+  scope: cognitiveService
+}
 
 resource cognitiveService_diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = [
   for (diagnosticSetting, index) in (diagnosticSettings ?? []): {
@@ -321,3 +499,165 @@ resource cognitiveService_roleAssignments 'Microsoft.Authorization/roleAssignmen
     scope: cognitiveService
   }
 ]
+
+module secretsExport 'keyVaultExport.bicep' = if (secretsExportConfiguration != null) {
+  name: '${uniqueString(deployment().name, location)}-secrets-kv'
+  scope: resourceGroup(
+    split(secretsExportConfiguration.?keyVaultResourceId!, '/')[2],
+    split(secretsExportConfiguration.?keyVaultResourceId!, '/')[4]
+  )
+  params: {
+    keyVaultName: last(split(secretsExportConfiguration.?keyVaultResourceId!, '/'))
+    secretsToSet: union(
+      [],
+      contains(secretsExportConfiguration!, 'accessKey1Name')
+        ? [
+            {
+              name: secretsExportConfiguration!.?accessKey1Name
+              value: cognitiveService.listKeys().key1
+            }
+          ]
+        : [],
+      contains(secretsExportConfiguration!, 'accessKey2Name')
+        ? [
+            {
+              name: secretsExportConfiguration!.?accessKey2Name
+              value: cognitiveService.listKeys().key2
+            }
+          ]
+        : []
+    )
+  }
+}
+
+@description('The name of the cognitive services account.')
+output name string = cognitiveService.name
+
+@description('The resource ID of the cognitive services account.')
+output resourceId string = cognitiveService.id
+
+@description('The resource group the cognitive services account was deployed into.')
+output resourceGroupName string = resourceGroup().name
+
+@description('The service endpoint of the cognitive services account.')
+output endpoint string = cognitiveService.properties.endpoint
+
+@description('All endpoints available for the cognitive services account, types depends on the cognitive service kind.')
+output endpoints endpointType = cognitiveService.properties.endpoints
+
+@description('The principal ID of the system assigned identity.')
+output systemAssignedMIPrincipalId string? = cognitiveService.?identity.?principalId
+
+@description('The location the resource was deployed into.')
+output location string = cognitiveService.location
+
+import { secretsOutputType } from 'br/public:avm/utl/types/avm-common-types:0.5.1'
+@description('A hashtable of references to the secrets exported to the provided Key Vault. The key of each reference is each secret\'s name.')
+output exportedSecrets secretsOutputType = (secretsExportConfiguration != null)
+  ? toObject(secretsExport.outputs.secretsSet, secret => last(split(secret.secretResourceId, '/')), secret => secret)
+  : {}
+
+@description('The private endpoints of the congitive services account.')
+output privateEndpoints privateEndpointOutputType[] = [
+  for (pe, index) in (privateEndpoints ?? []): {
+    name: cognitiveService_privateEndpoints[index].outputs.name
+    resourceId: cognitiveService_privateEndpoints[index].outputs.resourceId
+    groupId: cognitiveService_privateEndpoints[index].outputs.?groupId!
+    customDnsConfigs: cognitiveService_privateEndpoints[index].outputs.customDnsConfigs
+    networkInterfaceResourceIds: cognitiveService_privateEndpoints[index].outputs.networkInterfaceResourceIds
+  }
+]
+
+// ================ //
+// Definitions      //
+// ================ //
+
+@export()
+@description('The type for the private endpoint output.')
+type privateEndpointOutputType = {
+  @description('The name of the private endpoint.')
+  name: string
+
+  @description('The resource ID of the private endpoint.')
+  resourceId: string
+
+  @description('The group Id for the private endpoint Group.')
+  groupId: string?
+
+  @description('The custom DNS configurations of the private endpoint.')
+  customDnsConfigs: {
+    @description('FQDN that resolves to private endpoint IP address.')
+    fqdn: string?
+
+    @description('A list of private IP addresses of the private endpoint.')
+    ipAddresses: string[]
+  }[]
+
+  @description('The IDs of the network interfaces associated with the private endpoint.')
+  networkInterfaceResourceIds: string[]
+}
+
+@export()
+@description('The type for a cognitive services account deployment.')
+type deploymentType = {
+  @description('Optional. Specify the name of cognitive service account deployment.')
+  name: string?
+
+  @description('Required. Properties of Cognitive Services account deployment model.')
+  model: {
+    @description('Required. The name of Cognitive Services account deployment model.')
+    name: string
+
+    @description('Required. The format of Cognitive Services account deployment model.')
+    format: string
+
+    @description('Required. The version of Cognitive Services account deployment model.')
+    version: string
+  }
+
+  @description('Optional. The resource model definition representing SKU.')
+  sku: {
+    @description('Required. The name of the resource model definition representing SKU.')
+    name: string
+
+    @description('Optional. The capacity of the resource model definition representing SKU.')
+    capacity: int?
+
+    @description('Optional. The tier of the resource model definition representing SKU.')
+    tier: string?
+
+    @description('Optional. The size of the resource model definition representing SKU.')
+    size: string?
+
+    @description('Optional. The family of the resource model definition representing SKU.')
+    family: string?
+  }?
+
+  @description('Optional. The name of RAI policy.')
+  raiPolicyName: string?
+
+  @description('Optional. The version upgrade option.')
+  versionUpgradeOption: string?
+}
+
+@export()
+@description('The type for a cognitive services account endpoint.')
+type endpointType = {
+  @description('Type of the endpoint.')
+  name: string?
+  @description('The endpoint URI.')
+  endpoint: string?
+}
+
+@export()
+@description('The type of the secrets exported to the provided Key Vault.')
+type secretsExportConfigurationType = {
+  @description('Required. The key vault name where to store the keys and connection strings generated by the modules.')
+  keyVaultResourceId: string
+
+  @description('Optional. The name for the accessKey1 secret to create.')
+  accessKey1Name: string?
+
+  @description('Optional. The name for the accessKey2 secret to create.')
+  accessKey2Name: string?
+}

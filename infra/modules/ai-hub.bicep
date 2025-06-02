@@ -47,8 +47,8 @@ module aiFoundryAiHub 'br/public:avm/res/machine-learning-services/workspace:0.1
         }
       }
     ]
-    //publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
-    publicNetworkAccess: 'Enabled' //TODO: connection via private endpoint is not working from containers network. Change this when fixed
+    publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
+    //publicNetworkAccess: 'Enabled' //TODO: connection via private endpoint is not working from containers network. Change this when fixed
     managedNetworkSettings: virtualNetworkEnabled
       ? {
           isolationMode: 'AllowInternetOutbound'

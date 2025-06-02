@@ -743,7 +743,7 @@ var aiFoundryAiServicesModelDeployment = {
   raiPolicyName: 'Microsoft.Default'
 }
 
-module aiFoundryAiServices 'br/public:avm/res/cognitive-services/account:0.10.2' = if (aiFoundryAIservicesEnabled) {
+module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservicesEnabled) {
   name: take('avm.res.cognitive-services.account.${aiFoundryAiServicesResourceName}', 64)
   params: {
     name: aiFoundryAiServicesResourceName
@@ -763,9 +763,9 @@ module aiFoundryAiServices 'br/public:avm/res/cognitive-services/account:0.10.2'
       virtualNetworkRules: []
       ipRules: []
     }
-    //publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
-    //publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
-    publicNetworkAccess: 'Enabled' //TODO: connection via private endpoint is not working from containers network. Change this when fixed
+    networkInjectionSubnetResourceId: virtualNetwork.outputs.subnetResourceIds[3] //This is the subnet for the AI Foundry Agents
+    publicNetworkAccess: virtualNetworkEnabled ? 'Disabled' : 'Enabled'
+    //publicNetworkAccess: 'Enabled' //TODO: connection via private endpoint is not working from containers network. Change this when fixed
     privateEndpoints: virtualNetworkEnabled
       ? ([
           {
@@ -1084,7 +1084,7 @@ module containerAppEnvironment 'modules/container-app-environment.bicep' = if (c
     applicationInsightsConnectionString: applicationInsights.outputs.connectionString
     enableTelemetry: enableTelemetry
     subnetResourceId: virtualNetworkEnabled
-      ? containerAppEnvironmentConfiguration.?subnetResourceId ?? virtualNetwork.?outputs.?subnetResourceIds[3] ?? ''
+      ? containerAppEnvironmentConfiguration.?subnetResourceId ?? virtualNetwork.?outputs.?subnetResourceIds[4] ?? ''
       : ''
     //aspireDashboardEnabled: !virtualNetworkEnabled
     // vnetConfiguration: virtualNetworkEnabled
