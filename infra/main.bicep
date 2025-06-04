@@ -293,7 +293,7 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (ap
 // WAF best practices for identity and access management: https://learn.microsoft.com/en-us/azure/well-architected/security/identity-access
 var userAssignedManagedIdentityEnabled = userAssignedManagedIdentityConfiguration.?enabled ?? true
 var userAssignedManagedIdentityResourceName = userAssignedManagedIdentityConfiguration.?name ?? 'id-${solutionPrefix}'
-module userAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = if (userAssignedManagedIdentityEnabled) {
+module userAssignedIdentityAIHub 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = if (userAssignedManagedIdentityEnabled) {
   name: take('avm.res.managed-identity.user-assigned-identity.${userAssignedManagedIdentityResourceName}', 64)
   params: {
     name: userAssignedManagedIdentityResourceName
@@ -753,7 +753,7 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
     diagnosticSettings: [{ workspaceResourceId: logAnalyticsWorkspace.outputs.resourceId }]
     sku: aiFoundryAiServicesConfiguration.?sku ?? 'S0'
     kind: 'AIServices'
-    disableLocalAuth: false //Should be set to true for WAF aligned configuration
+    disableLocalAuth: true //Should be set to true for WAF aligned configuration
     customSubDomainName: aiFoundryAiServicesResourceName
     apiProperties: {
       //staticsEnabled: false
@@ -782,11 +782,6 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
         ])
       : []
     roleAssignments: [
-      // {
-      //   principalId: userAssignedIdentity.outputs.principalId
-      //   principalType: 'ServicePrincipal'
-      //   roleDefinitionIdOrName: 'Cognitive Services OpenAI User'
-      // }
       {
         principalId: containerApp.outputs.?systemAssignedMIPrincipalId!
         principalType: 'ServicePrincipal'
@@ -808,6 +803,18 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
         }
       }
     ]
+  }
+}
+
+var roleAssignmentAiHubAiProjectAzureAiDeveloper = '${aiFoundryAiHubResourceName}-${aiFoundryAiProjectName}-CognitiveServicesOpenAIUser'
+module resourceRoleAssignmentAiHubAiProjectAzureAiDeveloper 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = if (aiFoundryAiHubEnabled && aiFoundryAIservicesEnabled) {
+  name: take('avm.ptn.authorization.resource-role-assignment.${roleAssignmentAiHubAiProjectAzureAiDeveloper}', 64)
+  params: {
+    roleName: 'Azure AI Developer'
+    roleDefinitionId: '64702f94-c441-49e6-a78b-ef80e0188fee'
+    principalId: aiFoundryAiHub.outputs.?systemAssignedMIPrincipalId!
+    principalType: 'ServicePrincipal'
+    resourceId: aiFoundryAiProject.outputs.?resourceId
   }
 }
 
@@ -844,7 +851,7 @@ var aiFoundryStorageAccountResourceName = aiFoundryStorageAccountConfiguration.?
   ''
 )
 
-module aiFoundryStorageAccount 'br/public:avm/res/storage/storage-account:0.18.2' = if (aiFoundryStorageAccountEnabled) {
+module aiFoundryStorageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = if (aiFoundryStorageAccountEnabled) {
   name: take('avm.res.storage.storage-account.${aiFoundryStorageAccountResourceName}', 64)
   dependsOn: [
     privateDnsZonesAiFoundryStorageAccount
@@ -880,8 +887,12 @@ module aiFoundryStorageAccount 'br/public:avm/res/storage/storage-account:0.18.2
       : null
     roleAssignments: [
       {
-        principalId: userAssignedIdentity.outputs.principalId
+        principalId: containerApp.?outputs.?systemAssignedMIPrincipalId!
         roleDefinitionIdOrName: 'Storage Blob Data Contributor'
+      }
+      {
+        principalId: containerApp.?outputs.?systemAssignedMIPrincipalId!
+        roleDefinitionIdOrName: '69566ab7-960f-475b-8e7c-b3118f30c6bd' //'Storage File Privileged Contributor'
       }
     ]
   }
@@ -896,7 +907,10 @@ var mlPrivateDnsZones = {
 }
 module privateDnsZonesAiFoundryWorkspaceHub 'br/public:avm/res/network/private-dns-zone:0.3.1' = [
   for zone in objectKeys(mlPrivateDnsZones): if (virtualNetworkEnabled && aiFoundryAiHubEnabled) {
-    name: take('avm.res.network.private-dns-zone.ai-hub.${uniqueString(aiFoundryAiHubName,zone)}.${solutionPrefix}', 64)
+    name: take(
+      'avm.res.network.private-dns-zone.ai-hub.${uniqueString(aiFoundryAiHubResourceName,zone)}.${solutionPrefix}',
+      64
+    )
     params: {
       name: zone
       enableTelemetry: enableTelemetry
@@ -911,14 +925,14 @@ module privateDnsZonesAiFoundryWorkspaceHub 'br/public:avm/res/network/private-d
   }
 ]
 var aiFoundryAiHubEnabled = aiFoundryAiHubConfiguration.?enabled ?? true
-var aiFoundryAiHubName = aiFoundryAiHubConfiguration.?name ?? 'aih-${solutionPrefix}'
+var aiFoundryAiHubResourceName = aiFoundryAiHubConfiguration.?name ?? 'aih-${solutionPrefix}'
 module aiFoundryAiHub 'modules/ai-hub.bicep' = if (aiFoundryAiHubEnabled) {
-  name: take('module.ai-hub.${aiFoundryAiHubName}', 64)
+  name: take('module.ai-hub.${aiFoundryAiHubResourceName}', 64)
   dependsOn: [
     privateDnsZonesAiFoundryWorkspaceHub
   ]
   params: {
-    name: aiFoundryAiHubName
+    name: aiFoundryAiHubResourceName
     location: aiFoundryAiHubConfiguration.?location ?? azureOpenAILocation
     tags: aiFoundryAiHubConfiguration.?tags ?? tags
     sku: aiFoundryAiHubConfiguration.?sku ?? 'Basic'
@@ -931,8 +945,8 @@ module aiFoundryAiHub 'modules/ai-hub.bicep' = if (aiFoundryAiHubEnabled) {
     privateEndpoints: virtualNetworkEnabled
       ? [
           {
-            name: 'pep-${aiFoundryAiHubName}'
-            customNetworkInterfaceName: 'nic-${aiFoundryAiHubName}'
+            name: 'pep-${aiFoundryAiHubResourceName}'
+            customNetworkInterfaceName: 'nic-${aiFoundryAiHubResourceName}'
             service: mlTargetSubResource
             subnetResourceId: virtualNetworkEnabled
               ? aiFoundryAiHubConfiguration.?subnetResourceId ?? virtualNetwork.?outputs.?subnetResourceIds[0]
@@ -965,6 +979,7 @@ module aiFoundryAiProject 'br/public:avm/res/machine-learning-services/workspace
     sku: aiFoundryAiProjectConfiguration.?sku ?? 'Basic'
     kind: 'Project'
     hubResourceId: aiFoundryAiHub.outputs.resourceId
+    managedIdentities: { systemAssigned: true }
     roleAssignments: [
       {
         principalId: containerApp.outputs.?systemAssignedMIPrincipalId!
@@ -972,6 +987,21 @@ module aiFoundryAiProject 'br/public:avm/res/machine-learning-services/workspace
         roleDefinitionIdOrName: '64702f94-c441-49e6-a78b-ef80e0188fee' //'Azure AI Developer'
       }
     ]
+  }
+}
+
+var roleAssignmentAiProjectAiServicesCognitiveServicesOpenAIUser = '${aiFoundryAiProjectName}-${aiFoundryAiHubResourceName}-CognitiveServicesOpenAIUser'
+module resourceRoleAssignmentAiProjectAiServicesCognitiveServicesOpenAIUser 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.2' = if (aiFoundryAiHubEnabled && aiFoundryAIservicesEnabled) {
+  name: take(
+    'avm.ptn.authorization.resource-role-assignment.${roleAssignmentAiProjectAiServicesCognitiveServicesOpenAIUser}',
+    64
+  )
+  params: {
+    roleName: 'Cognitive Services OpenAI User'
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+    principalId: aiFoundryAiProject.outputs.?systemAssignedMIPrincipalId!
+    principalType: 'ServicePrincipal'
+    resourceId: aiFoundryAiServices.outputs.resourceId
   }
 }
 
@@ -1049,7 +1079,7 @@ module cosmosDb 'br/public:avm/res/document-db/database-account:0.12.0' = if (co
       'EnableServerless'
     ]
     sqlRoleAssignmentsPrincipalIds: [
-      //userAssignedIdentity.outputs.principalId
+      //userAssignedIdentityAIHub.outputs.principalId
       containerApp.outputs.?systemAssignedMIPrincipalId
     ]
     sqlRoleDefinitions: [
@@ -1110,7 +1140,7 @@ module containerApp 'br/public:avm/res/app/container-app:0.14.2' = if (container
     environmentResourceId: containerAppConfiguration.?environmentResourceId ?? containerAppEnvironment.outputs.resourceId
     managedIdentities: {
       systemAssigned: true //Replace with user assigned identity
-      userAssignedResourceIds: [userAssignedIdentity.outputs.resourceId]
+      //userAssignedResourceIds: [userAssignedIdentityAIHub.outputs.resourceId]
     }
     ingressTargetPort: containerAppConfiguration.?ingressTargetPort ?? 8000
     ingressExternal: true
