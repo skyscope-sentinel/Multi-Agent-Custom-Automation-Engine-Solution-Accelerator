@@ -5,24 +5,12 @@ param (
     [int]$Capacity
 )
 
-# Verify all required parameters are provided
+# Verify required parameters
 $MissingParams = @()
-
-if (-not $Location) {
-    $MissingParams += "location"
-}
-
-if (-not $Model) {
-    $MissingParams += "model"
-}
-
-if (-not $Capacity) {
-    $MissingParams += "capacity"
-}
-
-if (-not $DeploymentType) {
-    $MissingParams += "deployment-type"
-}
+if (-not $Location) { $MissingParams += "location" }
+if (-not $Model) { $MissingParams += "model" }
+if (-not $Capacity) { $MissingParams += "capacity" }
+if (-not $DeploymentType) { $MissingParams += "deployment-type" }
 
 if ($MissingParams.Count -gt 0) {
     Write-Error "❌ ERROR: Missing required parameters: $($MissingParams -join ', ')"
@@ -37,17 +25,28 @@ if ($DeploymentType -ne "Standard" -and $DeploymentType -ne "GlobalStandard") {
 
 $ModelType = "OpenAI.$DeploymentType.$Model"
 
-Write-Host "🔍 Checking quota for $ModelType in $Location ..."
+function Check-Quota {
+    param (
+        [string]$Region
+    )
 
-# Get model quota information
-$ModelInfo = az cognitiveservices usage list --location $Location --query "[?name.value=='$ModelType']" --output json | ConvertFrom-Json
+    Write-Host "`n🔍 Checking quota for $ModelType in $Region ..."
 
-if (-not $ModelInfo) {
-    Write-Error "❌ ERROR: No quota information found for model: $Model in location: $Location for model type: $ModelType."
-    exit 1
-}
+    $ModelInfoRaw = az cognitiveservices usage list --location $Region --query "[?name.value=='$ModelType']" --output json
+    $ModelInfo = $null
 
-if ($ModelInfo) {
+    try {
+        $ModelInfo = $ModelInfoRaw | ConvertFrom-Json
+    } catch {
+        Write-Warning "⚠️ Failed to parse quota info for region: $Region"
+        return $false
+    }
+
+    if (-not $ModelInfo) {
+        Write-Host "⚠️ No quota information found for $ModelType in $Region"
+        return $false
+    }
+
     $CurrentValue = ($ModelInfo | Where-Object { $_.name.value -eq $ModelType }).currentValue
     $Limit = ($ModelInfo | Where-Object { $_.name.value -eq $ModelType }).limit
 
@@ -55,12 +54,41 @@ if ($ModelInfo) {
     $Limit = [int]($Limit -replace '\.0+$', '') # Remove decimals
 
     $Available = $Limit - $CurrentValue
-    Write-Host "✅ Model available - Model: $ModelType | Used: $CurrentValue | Limit: $Limit | Available: $Available"
+    Write-Host "🔎 Model: $ModelType | Used: $CurrentValue | Limit: $Limit | Available: $Available"
 
-    if ($Available -lt $Capacity) {
-        Write-Error "❌ ERROR: Insufficient quota for model: $Model in location: $Location. Available: $Available, Requested: $Capacity."
-        exit 1
+    if ($Available -ge $Capacity) {
+        Write-Host "✅ Sufficient quota in $Region"
+        return $true
     } else {
-        Write-Host "✅ Sufficient quota for model: $Model in location: $Location. Available: $Available, Requested: $Capacity."
+        Write-Host "❌ Insufficient quota in $Region (Available: $Available, Required: $Capacity)"
+        return $false
     }
 }
+
+# List of fallback regions (excluding the one already tried)
+$PreferredRegions = @('australiaeast', 'eastus2', 'francecentral', 'japaneast', 'norwayeast', 'swedencentral', 'uksouth', 'westus') | Where-Object { $_ -ne $Location }
+
+# Try original location first
+if (Check-Quota -Region $Location) {
+    exit 0
+}
+
+Write-Host "`n🔁 Trying fallback regions for available quota..."
+
+foreach ($region in $PreferredRegions) {
+    if (Check-Quota -Region $region) {
+        Write-Host "🚫 Deployment cannot proceed because the original region '$Location' lacks sufficient quota."
+        Write-Host "➡️ You can retry using the available region: '$region'"
+        Write-Host "🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run the following command:"
+        Write-Host "    azd env set AZURE_OPENAI_LOCATION '$region'"
+
+        # Optional: update `.azure/env` (uncomment if needed)
+        # Add-Content ".azure/env" "`nAZURE_OPENAI_LOCATION=$region"
+
+        # Exit with non-zero code to halt deployment
+        exit 2
+    }
+}
+
+Write-Error "❌ ERROR: No available quota found in any region."
+exit 1
