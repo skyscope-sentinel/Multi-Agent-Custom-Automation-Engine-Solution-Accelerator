@@ -68,9 +68,14 @@ while IFS= read -r deployment; do
     ./infra/scripts/validate_model_quota.sh --location "$LOCATION" --model "$model" --capacity $capacity --deployment-type $type
 
   # Check if the script failed
-  if [ $? -ne 0 ]; then
-    echo "❌ ERROR: Quota validation failed for model deployment: $name"
-    quotaAvailable=false
+  exit_code=$?
+  if [ $exit_code -ne 0 ]; then
+      if [ $exit_code -eq 2 ]; then
+          # Skip printing any quota validation error — already handled inside the validation script
+          exit 1
+      fi
+      echo "❌ ERROR: Quota validation failed for model deployment: $name"
+      quotaAvailable=false
   fi
 done <<< "$(echo "$aiModelDeployments")"
 
