@@ -25,12 +25,13 @@ if ($DeploymentType -ne "Standard" -and $DeploymentType -ne "GlobalStandard") {
 
 $ModelType = "OpenAI.$DeploymentType.$Model"
 
+$PreferredRegions = @('australiaeast', 'eastus2', 'francecentral', 'japaneast', 'norwayeast', 'swedencentral', 'uksouth', 'westus')
+$AllResults = @()
+
 function Check-Quota {
     param (
         [string]$Region
     )
-
-    Write-Host "`n🔍 Checking quota for $ModelType in $Region ..."
 
     $ModelInfoRaw = az cognitiveservices usage list --location $Region --query "[?name.value=='$ModelType']" --output json
     $ModelInfo = $null
@@ -38,56 +39,66 @@ function Check-Quota {
     try {
         $ModelInfo = $ModelInfoRaw | ConvertFrom-Json
     } catch {
-        Write-Warning "⚠️ Failed to parse quota info for region: $Region"
-        return $false
+        return
     }
 
     if (-not $ModelInfo) {
-        Write-Host "⚠️ No quota information found for $ModelType in $Region"
-        return $false
+        return
     }
 
     $CurrentValue = ($ModelInfo | Where-Object { $_.name.value -eq $ModelType }).currentValue
     $Limit = ($ModelInfo | Where-Object { $_.name.value -eq $ModelType }).limit
 
-    $CurrentValue = [int]($CurrentValue -replace '\.0+$', '') # Remove decimals
-    $Limit = [int]($Limit -replace '\.0+$', '') # Remove decimals
-
+    $CurrentValue = [int]($CurrentValue -replace '\.0+$', '')
+    $Limit = [int]($Limit -replace '\.0+$', '')
     $Available = $Limit - $CurrentValue
-    Write-Host "🔎 Model: $ModelType | Used: $CurrentValue | Limit: $Limit | Available: $Available"
 
-    if ($Available -ge $Capacity) {
-        Write-Host "✅ Sufficient quota in $Region"
-        return $true
-    } else {
-        Write-Host "❌ Insufficient quota in $Region (Available: $Available, Required: $Capacity)"
-        return $false
+    $script:AllResults += [PSCustomObject]@{
+        Region    = $Region
+        Model     = $ModelType
+        Limit     = $Limit
+        Used      = $CurrentValue
+        Available = $Available
     }
 }
 
-# List of fallback regions (excluding the one already tried)
-$PreferredRegions = @('australiaeast', 'eastus2', 'francecentral', 'japaneast', 'norwayeast', 'swedencentral', 'uksouth', 'westus') | Where-Object { $_ -ne $Location }
+foreach ($region in $PreferredRegions) {
+    Check-Quota -Region $region
+}
 
-# Try original location first
-if (Check-Quota -Region $Location) {
+# Display Results Table
+Write-Host "\n-------------------------------------------------------------------------------------------------------------"
+Write-Host "| No.  | Region            | Model Name                           | Limit   | Used    | Available |"
+Write-Host "-------------------------------------------------------------------------------------------------------------"
+
+$count = 1
+foreach ($entry in $AllResults) {
+    $index = $PreferredRegions.IndexOf($entry.Region) + 1
+    $modelShort = $entry.Model.Substring($entry.Model.LastIndexOf(".") + 1)
+    Write-Host ("| {0,-4} | {1,-16} | {2,-35} | {3,-7} | {4,-7} | {5,-9} |" -f $index, $entry.Region, $entry.Model, $entry.Limit, $entry.Used, $entry.Available)
+    $count++
+}
+Write-Host "-------------------------------------------------------------------------------------------------------------"
+
+$EligibleRegion = $AllResults | Where-Object { $_.Region -eq $Location -and $_.Available -ge $Capacity }
+if ($EligibleRegion) {
+    Write-Host "\n✅ Sufficient quota found in original region '$Location'."
     exit 0
 }
 
-Write-Host "`n🔁 Trying fallback regions for available quota..."
+$FallbackRegions = $AllResults | Where-Object { $_.Region -ne $Location -and $_.Available -ge $Capacity }
 
-foreach ($region in $PreferredRegions) {
-    if (Check-Quota -Region $region) {
-        Write-Host "🚫 Deployment cannot proceed because the original region '$Location' lacks sufficient quota."
-        Write-Host "➡️ You can retry using the available region: '$region'"
-        Write-Host "🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run the following command:"
-        Write-Host "    azd env set AZURE_OPENAI_LOCATION '$region'"
+if ($FallbackRegions.Count -gt 0) {
+    Write-Host "`n❌ Deployment cannot proceed because the original region '$Location' lacks sufficient quota."
+    Write-Host "➡️ You can retry using one of the following regions with sufficient quota:`n"
 
-        # Optional: update `.azure/env` (uncomment if needed)
-        # Add-Content ".azure/env" "`nAZURE_OPENAI_LOCATION=$region"
-
-        # Exit with non-zero code to halt deployment
-        exit 2
+    foreach ($region in $FallbackRegions) {
+        Write-Host "   • $($region.Region) (Available: $($region.Available))"
     }
+
+    Write-Host "`n🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run:"
+    Write-Host "    azd env set AZURE_OPENAI_LOCATION '<region>'"
+    exit 2
 }
 
 Write-Error "❌ ERROR: No available quota found in any region."

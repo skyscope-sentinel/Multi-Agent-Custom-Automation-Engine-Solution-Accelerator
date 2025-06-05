@@ -51,56 +51,47 @@ fi
 
 MODEL_TYPE="OpenAI.$DEPLOYMENT_TYPE.$MODEL"
 
-check_quota() {
-  local region="$1"
-  echo "🔍 Checking quota for $MODEL_TYPE in $region ..."
+declare -a FALLBACK_REGIONS=()
+ROW_NO=1
 
+printf "\n%-5s | %-20s | %-40s | %-10s | %-10s | %-10s\n" "No." "Region" "Model Name" "Limit" "Used" "Available"
+printf -- "---------------------------------------------------------------------------------------------------------------------\n"
+
+for region in "${ALL_REGIONS[@]}"; do
   MODEL_INFO=$(az cognitiveservices usage list --location "$region" --query "[?name.value=='$MODEL_TYPE']" --output json 2>/dev/null)
 
-  if [[ -z "$MODEL_INFO" || "$MODEL_INFO" == "[]" ]]; then
-    echo "⚠️  No quota info found for $MODEL_TYPE in $region"
-    return 1
+  if [[ -n "$MODEL_INFO" && "$MODEL_INFO" != "[]" ]]; then
+    CURRENT_VALUE=$(echo "$MODEL_INFO" | jq -r '.[0].currentValue // 0' | cut -d'.' -f1)
+    LIMIT=$(echo "$MODEL_INFO" | jq -r '.[0].limit // 0' | cut -d'.' -f1)
+    AVAILABLE=$((LIMIT - CURRENT_VALUE))
+
+    printf "%-5s | %-20s | %-40s | %-10s | %-10s | %-10s\n" "$ROW_NO" "$region" "$MODEL_TYPE" "$LIMIT" "$CURRENT_VALUE" "$AVAILABLE"
+
+    if [[ "$region" == "$LOCATION" && "$AVAILABLE" -ge "$CAPACITY" ]]; then
+      echo -e "\n✅ Sufficient quota available in user-specified region: $LOCATION"
+      exit 0
+    fi
+
+    if [[ "$region" != "$LOCATION" && "$AVAILABLE" -ge "$CAPACITY" ]]; then
+      FALLBACK_REGIONS+=("$region ($AVAILABLE)")
+    fi
   fi
 
-  CURRENT_VALUE=$(echo "$MODEL_INFO" | jq -r '.[0].currentValue // 0' | cut -d'.' -f1)
-  LIMIT=$(echo "$MODEL_INFO" | jq -r '.[0].limit // 0' | cut -d'.' -f1)
-  AVAILABLE=$((LIMIT - CURRENT_VALUE))
+  ((ROW_NO++))
+done
 
-  echo "🔎 Model: $MODEL_TYPE | Used: $CURRENT_VALUE | Limit: $LIMIT | Available: $AVAILABLE"
+printf -- "---------------------------------------------------------------------------------------------------------------------\n"
 
-  if (( AVAILABLE >= CAPACITY )); then
-    echo "✅ Sufficient quota in $region"
-    return 0
-  else
-    echo "❌ Insufficient quota in $region (Available: $AVAILABLE, Required: $CAPACITY)"
-    return 1
-  fi
-}
-
-# Try user-provided region
-if check_quota "$LOCATION"; then
-  exit 0
+if [[ "${#FALLBACK_REGIONS[@]}" -gt 0 ]]; then
+  echo -e "\n❌ Deployment cannot proceed because the original region '$LOCATION' lacks sufficient quota."
+  echo "➡️  You can retry using one of the following regions with sufficient quota:"
+  for fallback in "${FALLBACK_REGIONS[@]}"; do
+    echo "   • $fallback"
+  done
+  echo -e "\n🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run:"
+  echo "    azd env set AZURE_OPENAI_LOCATION '<region>'"
+  exit 2
 fi
-
-# Try fallback regions
-REMAINING_REGIONS=()
-for region in "${ALL_REGIONS[@]}"; do
-  if [[ "$region" != "$LOCATION" ]]; then
-    REMAINING_REGIONS+=("$region")
-  fi
-done
-
-echo "🔁 Trying fallback regions for available quota..."
-
-for region in "${REMAINING_REGIONS[@]}"; do
-  if check_quota "$region"; then
-    echo "🚫 Deployment cannot proceed because the original region '$LOCATION' lacks sufficient quota."
-    echo "➡️  You can retry using the available region: '$region'"
-    echo "🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run:"
-    echo "    azd env set AZURE_OPENAI_LOCATION '$region'"
-    exit 1
-  fi
-done
 
 echo "❌ ERROR: No available quota found in any of the fallback regions."
 exit 1
