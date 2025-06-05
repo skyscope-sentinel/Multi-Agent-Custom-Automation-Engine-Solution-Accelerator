@@ -6,17 +6,15 @@ on:
       - main
       - dev
       - migrate-test-automation
-    paths:
-      - 'tests/e2e-test/**'
+    # paths:
+    #   - 'tests/e2e-test/**'
   schedule:
       - cron: '0 13 * * *'  # Runs at 1 PM UTC
   workflow_dispatch:
 
 env:
-    # url: ${{ vars.MACAE_WEB_URL }}
-    # api_url: ${{ vars.MACAE_API_URL }}
-    url: https://mabex2wl4dne7y-frontend-dzcesptnw2dou.azurewebsites.net/
-    api_url: https://mabex2wl4dne7y-backend.blueflower-cfe3d6b1.japaneast.azurecontainerapps.io
+    url: ${{ vars.MACAE_WEB_URL }}
+    api_url: ${{ vars.MACAE_API_URL }}
     accelerator_name: "MACAE"
 
 jobs:
@@ -43,8 +41,7 @@ jobs:
         with:
           azcliversion: 'latest'
           inlineScript: |
-            # az rest -m post -u "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ vars.MACAE_RG }}/providers/Microsoft.App/containerApps/${{ vars.MACAE_BACKEND_CONTAINER_NAME }}/start?api-version=2025-01-01"
-            az rest -m post -u "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/rg-macae-gp-testautomatn/providers/Microsoft.App/containerApps/mabex2wl4dne7y-backend/start?api-version=2025-01-01"
+            az rest -m post -u "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ vars.MACAE_RG }}/providers/Microsoft.App/containerApps/${{ vars.MACAE_BACKEND_CONTAINER_NAME }}/start?api-version=2025-01-01"
 
       - name: Install dependencies
         run: |
@@ -130,6 +127,5 @@ jobs:
         with:
           azcliversion: 'latest'
           inlineScript: |
-            # az rest -m post -u "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ vars.MACAE_RG }}/providers/Microsoft.App/containerApps/${{ vars.MACAE_BACKEND_CONTAINER_NAME }}/stop?api-version=2025-01-01"
-            az rest -m post -u "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/rg-macae-gp-testautomatn/providers/Microsoft.App/containerApps/mabex2wl4dne7y-backend/stop?api-version=2025-01-01"
+            az rest -m post -u "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ vars.MACAE_RG }}/providers/Microsoft.App/containerApps/${{ vars.MACAE_BACKEND_CONTAINER_NAME }}/stop?api-version=2025-01-01"
             az logout
