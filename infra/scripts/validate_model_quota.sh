@@ -88,8 +88,10 @@ if [[ "${#FALLBACK_REGIONS[@]}" -gt 0 ]]; then
   for fallback in "${FALLBACK_REGIONS[@]}"; do
     echo "   • $fallback"
   done
-  echo -e "\n🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run:"
+  echo -e "\n🔧 To proceed, run:"
   echo "    azd env set AZURE_OPENAI_LOCATION '<region>'"
+  echo "📌 To confirm it's set correctly, run:"
+  echo "    azd env get-value AZURE_OPENAI_LOCATION"
   exit 2
 fi
 

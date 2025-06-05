@@ -96,8 +96,10 @@ if ($FallbackRegions.Count -gt 0) {
         Write-Host "   • $($region.Region) (Available: $($region.Available))"
     }
 
-    Write-Host "`n🔧 To proceed, update the 'AZURE_OPENAI_LOCATION' value in the 'main.bicepparam' file, then run:"
+    Write-Host "`n🔧 To proceed, run:"
     Write-Host "    azd env set AZURE_OPENAI_LOCATION '<region>'"
+    Write-Host "📌 To confirm it's set correctly, run:"
+    Write-Host "    azd env get-value AZURE_OPENAI_LOCATION"
     exit 2
 }
 
